@@ -1,0 +1,45 @@
+.pin {
+  position: fixed;
+  width: 28px;
+  height: 28px;
+  margin-left: -14px;
+  margin-top: -14px;
+  border-radius: 50%;
+  border: 2px solid #0d99ff;
+  background: #fff;
+  color: #0d99ff;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  pointer-events: auto;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.pin:hover {
+  transform: scale(1.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.pinSelected {
+  border-color: #0a6bb5;
+  color: #0a6bb5;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(13, 153, 255, 0.35);
+  }
+}
+
+.pinNumber {
+  line-height: 1;
+}

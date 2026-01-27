@@ -1,0 +1,48 @@
+.wrapper {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2147483647;
+}
+
+.wrapper * {
+  box-sizing: border-box;
+}
+
+/* Let clicks pass through to the page so "comment mode" page-clicks can place pins.
+   Pin buttons themselves use pointer-events: auto so they stay clickable. */
+.pinsLayer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+.pinsLayer > * {
+  pointer-events: auto;
+}
+
+.fab {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: none;
+  background: #0d99ff;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  pointer-events: auto;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  transition: transform 0.15s, background 0.15s;
+}
+
+.fab:hover {
+  background: #0b7dd4;
+  transform: scale(1.05);
+}
+
+.fab[aria-pressed="true"] {
+  background: #0a6bb5;
+}

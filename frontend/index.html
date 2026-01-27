@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fig Comments – Demo</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      line-height: 1.6;
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+    h1 { color: #111; }
+    p { color: #444; }
+    .hero { font-size: 1.25rem; margin: 2rem 0; }
+    .card {
+      background: #f8f8f8;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin: 1rem 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>Figma-style comments demo</h1>
+  <p class="hero">
+    Click the 💬 button (bottom-right), then turn on comment mode and click anywhere on the page to drop a pin and add a comment.
+  </p>
+  <div class="card">
+    <h2>Feature block</h2>
+    <p>You can place pins on any element. Comments are stored per project and page URL.</p>
+  </div>
+  <div class="card">
+    <h2>Another block</h2>
+    <p>Use the sidebar to see all threads, resolve them, and add replies.</p>
+  </div>
+
+  <!-- Embed: uses data-project-id and data-backend-url. In dev, backend runs on :4000 -->
+  <script
+    type="module"
+    src="/src/embed.tsx"
+    data-project-id="walkwise-web"
+    data-backend-url="http://localhost:4000"
+ ></script>
+</body>
+</html>
