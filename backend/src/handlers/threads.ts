@@ -62,20 +62,55 @@ export async function addComment(req: Request, res: Response): Promise<void> {
 
 interface UpdateThreadBody {
   status?: "OPEN" | "RESOLVED";
+  resolvedBy?: string;
+  assignedTo?: string | null;
+  assignedBy?: string | null;
 }
 
 export async function updateThread(req: Request, res: Response): Promise<void> {
   try {
     const { threadId } = req.params;
-    const { status } = req.body as UpdateThreadBody;
-    if (!status || (status !== "OPEN" && status !== "RESOLVED")) {
-      res.status(400).json({ error: "Body must include status: 'OPEN' or 'RESOLVED'" });
+    const body = req.body as UpdateThreadBody;
+    const { status, resolvedBy, assignedTo, assignedBy } = body;
+
+    const data: {
+      status?: string;
+      resolvedBy?: string | null;
+      resolvedAt?: Date | null;
+      assignedTo?: string | null;
+      assignedBy?: string | null;
+      assignedAt?: Date | null;
+    } = {};
+
+    if (status !== undefined) {
+      if (status !== "OPEN" && status !== "RESOLVED") {
+        res.status(400).json({ error: "status must be 'OPEN' or 'RESOLVED'" });
+        return;
+      }
+      data.status = status;
+      if (status === "RESOLVED") {
+        data.resolvedBy = resolvedBy ?? null;
+        data.resolvedAt = new Date();
+      } else {
+        data.resolvedBy = null;
+        data.resolvedAt = null;
+      }
+    }
+
+    if (assignedTo !== undefined) {
+      data.assignedTo = assignedTo ?? null;
+      data.assignedBy = assignedBy ?? null;
+      data.assignedAt = assignedTo != null && assignedTo !== "" ? new Date() : null;
+    }
+
+    if (Object.keys(data).length === 0) {
+      res.status(400).json({ error: "Body must include status and/or assignedTo" });
       return;
     }
 
     const thread = await prisma.thread.update({
       where: { id: threadId },
-      data: { status },
+      data,
     });
     res.json(thread);
   } catch (err: unknown) {
@@ -84,6 +119,24 @@ export async function updateThread(req: Request, res: Response): Promise<void> {
       return;
     }
     console.error("updateThread", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+}
+
+/** DELETE /api/threads/:threadId – delete a single thread and its comments. */
+export async function deleteThread(req: Request, res: Response): Promise<void> {
+  try {
+    const { threadId } = req.params;
+    await prisma.thread.delete({
+      where: { id: threadId },
+    });
+    res.status(204).send();
+  } catch (err: unknown) {
+    if (err && typeof err === "object" && "code" in err && err.code === "P2025") {
+      res.status(404).json({ error: "Thread not found" });
+      return;
+    }
+    console.error("deleteThread", err);
     res.status(500).json({ error: "Internal server error" });
   }
 }

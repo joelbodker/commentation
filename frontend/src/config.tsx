@@ -2,24 +2,18 @@ import React from "react";
 
 export type Config = {
   projectId: string;
-  backendUrl: string;
 };
 
 const ConfigContext = React.createContext<Config | null>(null);
 
 export function ConfigProvider({
   projectId,
-  backendUrl,
   children,
 }: {
   projectId: string;
-  backendUrl: string;
   children: React.ReactNode;
 }) {
-  const value = React.useMemo(
-    () => ({ projectId, backendUrl }),
-    [projectId, backendUrl]
-  );
+  const value = React.useMemo(() => ({ projectId }), [projectId]);
   return (
     <ConfigContext.Provider value={value}>{children}</ConfigContext.Provider>
   );

@@ -1,3 +1,11 @@
+/* JMH Typewriter – https://www.dafont.com/jmh-typewriter.font – place JMHTypewriter.ttf in src/assets/fonts/ */
+@font-face {
+  font-family: "JMH Typewriter";
+  src: url("./assets/fonts/JMHTypewriter.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
 .sidebar {
   position: fixed;
   top: 0;
@@ -18,6 +26,7 @@
 }
 
 .sidebarPanel {
+  position: relative;
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -35,9 +44,41 @@
 
 .title {
   margin: 0;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 600;
   color: #111;
+  font-family: "JMH Typewriter", "Courier New", Courier, monospace;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.headerIconBtn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.headerIconBtn:hover {
+  color: #111;
+}
+
+.headerIconActive {
+  color: #0d99ff;
+}
+
+.headerIconActive:hover {
+  color: #0b7dd4;
 }
 
 .close {
@@ -56,6 +97,247 @@
   color: #111;
 }
 
+.logView {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.logViewTitle {
+  margin: 0 0 8px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #666;
+}
+
+.logList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.logEntry {
+  font-size: 12px;
+  color: #333;
+  padding: 6px 8px;
+  background: #f5f5f5;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.logTime {
+  font-size: 10px;
+  color: #888;
+}
+
+.logMessage {
+  font-size: 12px;
+}
+
+.logEmpty {
+  font-size: 13px;
+  color: #888;
+  padding: 16px 0;
+}
+
+.settingsView {
+  flex: 1;
+  padding: 16px;
+}
+
+.settingsLabel {
+  margin: 0 0 10px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #666;
+}
+
+.settingsThemeRow {
+  display: flex;
+  gap: 8px;
+}
+
+.settingsThemeBtn {
+  padding: 8px 16px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: #fff;
+  font-size: 13px;
+  color: #333;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+
+.settingsThemeBtn:hover {
+  border-color: #0d99ff;
+  background: #f0f8ff;
+}
+
+.settingsThemeBtnSelected {
+  border-color: #0d99ff;
+  background: #e8f4fc;
+  color: #0d99ff;
+}
+
+/* Confetti shower from top of sidebar: paper strips fall down. */
+.confettiShower {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10;
+  overflow: hidden;
+}
+
+.confettiPiece {
+  position: absolute;
+  top: 0;
+  transform-origin: center center;
+  opacity: 0;
+  animation: confettiFall 1.4s ease-out forwards;
+}
+
+@keyframes confettiFall {
+  0% {
+    transform: translate(-50%, 0) translate(0, 0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, 0) translate(var(--drift), var(--fall)) rotate(var(--r));
+    opacity: 0;
+  }
+}
+
+.itemRow {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+  width: 100%;
+}
+
+.itemRow .itemCard {
+  flex: 1;
+  min-width: 0;
+}
+
+.itemTrashBtn {
+  flex-shrink: 0;
+  width: 28px;
+  height: auto;
+  border: none;
+  background: transparent;
+  color: #888;
+  padding: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+}
+
+.itemTrashBtn:hover {
+  color: #c00;
+  background: rgba(200, 0, 0, 0.08);
+}
+
+.nameRequiredBanner {
+  padding: 10px 16px;
+  background: #fff8e6;
+  border-bottom: 1px solid #f0e6c8;
+  font-size: 13px;
+  color: #8a7300;
+  flex-shrink: 0;
+}
+
+.nameRow {
+  padding: 8px 16px;
+  border-bottom: 1px solid #eee;
+  flex-shrink: 0;
+}
+
+.nameLabel {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.nameInput {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.nameInput:focus {
+  outline: none;
+  border-color: #0d99ff;
+}
+
+.nameInputRow {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.nameInputRow .nameInput {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.nameOkBtn {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 6px;
+  background: #0d99ff;
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+.nameOkBtn:hover {
+  background: #0b7dd4;
+}
+
+.nameLocked {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.nameValue {
+  font-size: 13px;
+  color: #111;
+}
+
+.nameEditBtn {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  border: 1px solid #ccc;
+  background: #fff;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.nameEditBtn:hover {
+  background: #f5f5f5;
+}
+
 .toolbar {
   display: flex;
   align-items: center;
@@ -63,6 +345,78 @@
   padding: 8px 16px;
   border-bottom: 1px solid #eee;
   flex-shrink: 0;
+}
+
+.pillSlider {
+  position: relative;
+  display: flex;
+  background: #eee;
+  border-radius: 8px;
+  padding: 2px;
+  gap: 0;
+  min-width: 200px;
+}
+
+/* Sliding track: animates between Tasks and Resolved. */
+.pillSliderTrack {
+  position: absolute;
+  left: 2px;
+  top: 2px;
+  bottom: 2px;
+  width: calc(50% - 2px);
+  background: #fff;
+  border-radius: 6px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  transition: transform 0.25s ease;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.pill {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  min-width: 78px;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  background: transparent;
+  color: #666;
+  transition: color 0.15s;
+  white-space: nowrap;
+}
+
+.pill:hover {
+  color: #111;
+}
+
+.pillSelected {
+  color: #0d99ff;
+}
+
+.toolbarActions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.trashBtn {
+  border: none;
+  background: transparent;
+  padding: 4px;
+  cursor: pointer;
+  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.trashBtn:hover {
+  color: #c00;
 }
 
 .toggleLabel {
@@ -75,7 +429,6 @@
 }
 
 .refresh {
-  margin-left: auto;
   border: none;
   background: transparent;
   font-size: 18px;
@@ -91,9 +444,49 @@
 .list {
   list-style: none;
   margin: 0;
-  padding: 8px 0;
+  padding: 10px 12px;
   overflow-y: auto;
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.listItem {
+  /* each list item wraps one card */
+}
+
+.listItemDropTarget {
+  outline: 2px dashed #0d99ff;
+  outline-offset: 2px;
+}
+
+.listItemDragging {
+  opacity: 0.6;
+}
+
+.dragHandle {
+  flex-shrink: 0;
+  width: 28px;
+  height: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #888;
+  cursor: grab;
+  border: none;
+  background: transparent;
+  padding: 4px;
+  border-radius: 4px;
+}
+
+.dragHandle:hover {
+  color: #555;
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.dragHandle:active {
+  cursor: grabbing;
 }
 
 .item {
@@ -101,21 +494,47 @@
   align-items: flex-start;
   gap: 10px;
   width: 100%;
-  padding: 10px 16px;
+  padding: 12px 14px;
   border: none;
-  background: none;
   text-align: left;
   cursor: pointer;
   font: inherit;
-  transition: background 0.1s;
+  transition: box-shadow 0.15s, background 0.15s;
 }
 
-.item:hover {
-  background: #f5f5f5;
+.itemCard {
+  border-radius: 10px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.itemPastelBlue {
+  background: #e8f4fc;
+}
+
+.itemPastelBlue:hover {
+  background: #dceefc;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.itemPastelGreen {
+  background: #e8f5e9;
+}
+
+.itemPastelGreen:hover {
+  background: #dcf0dd;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 .itemSelected {
-  background: #e8f4fc;
+  box-shadow: 0 0 0 2px #0d99ff;
+}
+
+.itemSelected.itemPastelBlue {
+  background: #dceefc;
+}
+
+.itemSelected.itemPastelGreen {
+  background: #dcf0dd;
 }
 
 .pinBadge {
@@ -151,6 +570,13 @@
 .itemDate {
   font-size: 11px;
   color: #888;
+}
+
+.itemResolvedMeta {
+  display: block;
+  font-size: 10px;
+  color: #888;
+  margin-top: 2px;
 }
 
 .badgeOpen {
@@ -205,34 +631,56 @@
 
 .detailMeta {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
 }
 
-.detailDate {
+.detailDate,
+.detailCreator {
   font-size: 12px;
   color: #888;
+}
+
+.detailCreator strong {
+  color: inherit;
+  font-weight: 600;
 }
 
 .commentsList {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .comment {
-  padding: 8px 0;
-  border-bottom: 1px solid #eee;
+  padding: 10px 12px;
 }
 
-.comment:last-of-type {
-  border-bottom: none;
+.commentCard {
+  border-radius: 10px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.commentPastelBlue {
+  background: #e8f4fc;
+}
+
+.commentPastelGreen {
+  background: #e8f5e9;
 }
 
 .commentMeta {
   font-size: 11px;
   color: #666;
   margin-bottom: 4px;
+}
+
+.detailMeta .resolvedMeta {
+  flex-basis: 100%;
+  font-size: 11px;
+  color: #666;
+  margin-top: 2px;
 }
 
 .commentBody {
@@ -302,6 +750,36 @@
   cursor: not-allowed;
 }
 
+.detailActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.assignBtn {
+  padding: 6px 12px;
+  border: 1px solid #0d99ff;
+  background: #e8f4fc;
+  color: #0d99ff;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.assignBtn:hover:not(:disabled) {
+  background: #dceefc;
+}
+
+.assignBtn:disabled {
+  opacity: 0.7;
+  cursor: default;
+  border-color: #999;
+  background: #eee;
+  color: #666;
+}
+
 .resolveBtn {
   align-self: flex-start;
   padding: 6px 12px;
@@ -319,4 +797,440 @@
 .resolveBtn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+/* Footer at bottom-right of sidebar: comment button in same pillbox look as collapsed menu. */
+.sidebarFooter {
+  flex-shrink: 0;
+  margin-top: auto;
+  padding: 16px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  border-top: 1px solid #eee;
+}
+
+/* Matches Overlay .pillboxFab: white container, shadow, rounded — single big round button. */
+.sidebarCommentPillbox {
+  display: flex;
+  padding: 6px;
+  border-radius: 28px;
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15), 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* When sidebar is open: same viewport position as main pillbox (hamburger when closed). */
+.sidebarCommentPillboxFixed {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+}
+
+/* Footer collapses when pillbox is fixed so we don't leave an empty strip. */
+.sidebarFooterPillboxFixed {
+  padding: 0;
+  min-height: 0;
+  border-top: none;
+}
+
+.sidebarCommentBtn {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: #333;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: box-shadow 0.2s, transform 0.1s, color 0.2s;
+}
+
+.sidebarCommentBtn:hover {
+  box-shadow: 0 0 0 2px #0d99ff;
+}
+
+.sidebarCommentBtn:active {
+  transform: scale(0.92);
+}
+
+/* When in comment mode: pastel blue fill + grey icon + rotating blue ring (matches pillbox). */
+.sidebarCommentBtnActive {
+  background: #b8dcf7;
+  box-shadow: none;
+}
+
+.sidebarCommentBtnActive:hover {
+  box-shadow: none;
+}
+
+.sidebarCommentBtnActive .sidebarCommentIcon {
+  position: relative;
+  z-index: 1;
+  color: #333;
+}
+
+.sidebarCommentBtnActive::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  border-top-color: #0d99ff;
+  animation: sidebarCommentRingSpin 0.8s linear infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.sidebarCommentBtnActive:hover::after {
+  border-top-color: #0b7dd4;
+}
+
+@keyframes sidebarCommentRingSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.sidebarCommentIcon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+/* Dark theme: sidebar panel and descendants */
+.sidebar[data-theme="dark"] {
+  background: #1e1e1e;
+  box-shadow: -2px 0 12px rgba(0, 0, 0, 0.5);
+}
+
+.sidebar[data-theme="dark"] .sidebarPanel .header {
+  border-bottom-color: #333;
+}
+
+.sidebar[data-theme="dark"] .sidebarPanel .title {
+  color: #e0e0e0;
+}
+
+.sidebar[data-theme="dark"] .sidebarPanel .headerIconBtn {
+  color: #a0a0a0;
+}
+
+.sidebar[data-theme="dark"] .sidebarPanel .headerIconBtn:hover {
+  color: #e0e0e0;
+}
+
+.sidebar[data-theme="dark"] .sidebarPanel .headerIconActive {
+  color: #5eb8ff;
+}
+
+.sidebar[data-theme="dark"] .sidebarPanel .headerIconActive:hover {
+  color: #7ec8ff;
+}
+
+.sidebar[data-theme="dark"] .logViewTitle {
+  color: #a0a0a0;
+}
+
+.sidebar[data-theme="dark"] .logEntry {
+  background: #2d2d2d;
+  color: #d0d0d0;
+}
+
+.sidebar[data-theme="dark"] .logTime {
+  color: #808080;
+}
+
+.sidebar[data-theme="dark"] .logEmpty {
+  color: #808080;
+}
+
+.sidebar[data-theme="dark"] .settingsLabel {
+  color: #a0a0a0;
+}
+
+.sidebar[data-theme="dark"] .settingsThemeBtn {
+  border-color: #404040;
+  background: #2d2d2d;
+  color: #d0d0d0;
+}
+
+.sidebar[data-theme="dark"] .settingsThemeBtn:hover {
+  border-color: #5eb8ff;
+  background: #252a33;
+}
+
+.sidebar[data-theme="dark"] .settingsThemeBtnSelected {
+  border-color: #5eb8ff;
+  background: #1a3a52;
+  color: #5eb8ff;
+}
+
+.sidebar[data-theme="dark"] .nameRequiredBanner {
+  background: #3d3520;
+  border-bottom-color: #4a4030;
+  color: #e6d9a8;
+}
+
+.sidebar[data-theme="dark"] .nameRow {
+  border-bottom-color: #333;
+}
+
+.sidebar[data-theme="dark"] .nameLabel {
+  color: #a0a0a0;
+}
+
+.sidebar[data-theme="dark"] .nameInput {
+  border-color: #404040;
+  background: #2d2d2d;
+  color: #e0e0e0;
+}
+
+.sidebar[data-theme="dark"] .nameInput::placeholder {
+  color: #707070;
+}
+
+.sidebar[data-theme="dark"] .nameInput:focus {
+  border-color: #5eb8ff;
+}
+
+.sidebar[data-theme="dark"] .nameOkBtn {
+  background: #0d99ff;
+}
+
+.sidebar[data-theme="dark"] .nameOkBtn:hover {
+  background: #0b7dd4;
+}
+
+.sidebar[data-theme="dark"] .nameValue {
+  color: #e0e0e0;
+}
+
+.sidebar[data-theme="dark"] .nameEditBtn {
+  border-color: #505050;
+  background: #2d2d2d;
+  color: #d0d0d0;
+}
+
+.sidebar[data-theme="dark"] .nameEditBtn:hover {
+  background: #353535;
+}
+
+.sidebar[data-theme="dark"] .toolbar {
+  border-bottom-color: #333;
+}
+
+.sidebar[data-theme="dark"] .pillSlider {
+  background: #333;
+}
+
+.sidebar[data-theme="dark"] .pillSliderTrack {
+  background: #2d2d2d;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.sidebar[data-theme="dark"] .pill {
+  color: #a0a0a0;
+}
+
+.sidebar[data-theme="dark"] .pill:hover {
+  color: #e0e0e0;
+}
+
+.sidebar[data-theme="dark"] .pillSelected {
+  color: #5eb8ff;
+}
+
+.sidebar[data-theme="dark"] .refresh {
+  color: #a0a0a0;
+}
+
+.sidebar[data-theme="dark"] .refresh:hover {
+  color: #5eb8ff;
+}
+
+.sidebar[data-theme="dark"] .loading,
+.sidebar[data-theme="dark"] .empty {
+  color: #a0a0a0;
+}
+
+.sidebar[data-theme="dark"] .error {
+  color: #ff6b6b;
+}
+
+.sidebar[data-theme="dark"] .itemPastelBlue {
+  background: #1e2a36;
+}
+
+.sidebar[data-theme="dark"] .itemPastelBlue:hover {
+  background: #243340;
+}
+
+.sidebar[data-theme="dark"] .itemPastelGreen {
+  background: #1e2e22;
+}
+
+.sidebar[data-theme="dark"] .itemPastelGreen:hover {
+  background: #243828;
+}
+
+.sidebar[data-theme="dark"] .itemSelected {
+  box-shadow: 0 0 0 2px #5eb8ff;
+}
+
+.sidebar[data-theme="dark"] .itemSelected.itemPastelBlue {
+  background: #243340;
+}
+
+.sidebar[data-theme="dark"] .itemSelected.itemPastelGreen {
+  background: #243828;
+}
+
+.sidebar[data-theme="dark"] .itemSnippet {
+  color: #d0d0d0;
+}
+
+.sidebar[data-theme="dark"] .itemDate,
+.sidebar[data-theme="dark"] .itemResolvedMeta {
+  color: #808080;
+}
+
+.sidebar[data-theme="dark"] .badgeOpen {
+  color: #5eb8ff;
+}
+
+.sidebar[data-theme="dark"] .badgeResolved {
+  color: #808080;
+}
+
+.sidebar[data-theme="dark"] .itemTrashBtn {
+  color: #808080;
+}
+
+.sidebar[data-theme="dark"] .itemTrashBtn:hover {
+  color: #ff6b6b;
+  background: rgba(255, 107, 107, 0.15);
+}
+
+.sidebar[data-theme="dark"] .detailDate,
+.sidebar[data-theme="dark"] .detailCreator,
+.sidebar[data-theme="dark"] .detailMeta .resolvedMeta,
+.sidebar[data-theme="dark"] .commentMeta {
+  color: #a0a0a0;
+}
+
+.sidebar[data-theme="dark"] .assignBtn {
+  border-color: #5eb8ff;
+  background: #1a3a52;
+  color: #5eb8ff;
+}
+
+.sidebar[data-theme="dark"] .assignBtn:hover:not(:disabled) {
+  background: #243340;
+}
+
+.sidebar[data-theme="dark"] .assignBtn:disabled {
+  border-color: #505050;
+  background: #2d2d2d;
+  color: #808080;
+}
+
+.sidebar[data-theme="dark"] .dragHandle {
+  color: #808080;
+}
+
+.sidebar[data-theme="dark"] .dragHandle:hover {
+  color: #a0a0a0;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.sidebar[data-theme="dark"] .listItemDropTarget {
+  outline-color: #5eb8ff;
+}
+
+.sidebar[data-theme="dark"] .commentPastelBlue {
+  background: #1e2a36;
+}
+
+.sidebar[data-theme="dark"] .commentPastelGreen {
+  background: #1e2e22;
+}
+
+.sidebar[data-theme="dark"] .commentBody {
+  color: #d0d0d0;
+}
+
+.sidebar[data-theme="dark"] .replyInput {
+  border-color: #404040;
+  background: #2d2d2d;
+  color: #e0e0e0;
+}
+
+.sidebar[data-theme="dark"] .replyInput::placeholder {
+  color: #707070;
+}
+
+.sidebar[data-theme="dark"] .replyInput:focus {
+  border-color: #5eb8ff;
+}
+
+.sidebar[data-theme="dark"] .createdByInput {
+  border-color: #404040;
+  background: #2d2d2d;
+  color: #e0e0e0;
+}
+
+.sidebar[data-theme="dark"] .createdByInput:focus {
+  border-color: #5eb8ff;
+}
+
+.sidebar[data-theme="dark"] .replyBtn:hover:not(:disabled) {
+  background: #0b7dd4;
+}
+
+.sidebar[data-theme="dark"] .resolveBtn {
+  border-color: #505050;
+  background: #2d2d2d;
+  color: #d0d0d0;
+}
+
+.sidebar[data-theme="dark"] .resolveBtn:hover:not(:disabled) {
+  background: #353535;
+}
+
+.sidebar[data-theme="dark"] .back {
+  color: #5eb8ff;
+}
+
+.sidebar[data-theme="dark"] .sidebarFooter {
+  border-top-color: #333;
+}
+
+.sidebar[data-theme="dark"] .sidebarCommentPillbox {
+  background: #2d2d2d;
+  border-color: #404040;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.sidebar[data-theme="dark"] .sidebarCommentBtn {
+  color: #e0e0e0;
+}
+
+.sidebar[data-theme="dark"] .sidebarCommentBtn:hover {
+  box-shadow: 0 0 0 2px #5eb8ff;
+}
+
+.sidebar[data-theme="dark"] .sidebarCommentBtnActive {
+  background: #1a3a52;
+}
+
+.sidebar[data-theme="dark"] .sidebarCommentBtnActive .sidebarCommentIcon {
+  color: #e0e0e0;
+}
+
+.sidebar[data-theme="dark"] .sidebarCommentBtnActive::after {
+  border-top-color: #5eb8ff;
 }

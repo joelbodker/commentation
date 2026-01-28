@@ -18,17 +18,22 @@ model Project {
 }
 
 model Thread {
-  id         String   @id
-  projectId  String
-  project    Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  pageUrl    String
-  selector   String
-  xPercent   Float
-  yPercent   Float
-  status     String   @default("OPEN") // OPEN | RESOLVED (SQLite has no enums)
-  createdBy  String
-  createdAt  DateTime  @default(now())
-  comments   Comment[]
+  id          String    @id
+  projectId   String
+  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  pageUrl     String
+  selector    String
+  xPercent    Float
+  yPercent    Float
+  status      String    @default("OPEN") // OPEN | RESOLVED (SQLite has no enums)
+  createdBy   String
+  createdAt   DateTime  @default(now())
+  resolvedBy  String?
+  resolvedAt  DateTime?
+  assignedTo  String?
+  assignedBy  String?
+  assignedAt  DateTime?
+  comments    Comment[]
 
   @@index([projectId, pageUrl])
 }

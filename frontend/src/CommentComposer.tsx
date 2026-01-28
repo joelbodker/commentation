@@ -1,6 +1,6 @@
 /**
  * Modal shown near the click when placing a new pin.
- * Textarea for body, createdBy field, Cancel / Post.
+ * Name is only in the sidebar; this composer has Comment + Cancel / Post.
  */
 import React, { useState, useRef, useEffect } from "react";
 import styles from "./CommentComposer.module.css";
@@ -12,18 +12,18 @@ export function CommentComposer({
   x,
   y,
   createdBy,
-  onCreatedByChange,
   onPost,
   onCancel,
 }: {
   x: number;
   y: number;
   createdBy: string;
-  onCreatedByChange: (v: string) => void;
-  onPost: (body: string, name: string) => void;
+  onPost: (body: string, name: string) => void | Promise<void>;
   onCancel: () => void;
 }) {
   const [body, setBody] = useState("");
+  const [posting, setPosting] = useState(false);
+  const [postError, setPostError] = useState<string | null>(null);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -40,13 +40,24 @@ export function CommentComposer({
     el.style.top = `${top}px`;
   }, [x, y]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const b = body.trim();
     const name = createdBy.trim() || "Anonymous";
-    if (!b) return;
-    onPost(b, name);
-    setBody("");
+    if (!b || posting) return;
+    setPostError(null);
+    setPosting(true);
+    try {
+      const result = onPost(b, name);
+      if (result && typeof (result as Promise<unknown>).then === "function") {
+        await (result as Promise<void>);
+      }
+      setBody("");
+    } catch (err) {
+      setPostError(err instanceof Error ? err.message : "Failed to post");
+    } finally {
+      setPosting(false);
+    }
   };
 
   return (
@@ -69,21 +80,15 @@ export function CommentComposer({
           placeholder="Add a comment..."
           rows={3}
           autoFocus
+          disabled={posting}
         />
-        <label className={styles.label}>Your name</label>
-        <input
-          type="text"
-          className={styles.input}
-          value={createdBy}
-          onChange={(e) => onCreatedByChange(e.target.value)}
-          placeholder="Name or email"
-        />
+        {postError && <p className={styles.error}>{postError}</p>}
         <div className={styles.actions}>
-          <button type="button" className={styles.cancel} onClick={onCancel}>
+          <button type="button" className={styles.cancel} onClick={onCancel} disabled={posting}>
             Cancel
           </button>
-          <button type="submit" className={styles.submit} disabled={!body.trim()}>
-            Post
+          <button type="submit" className={styles.submit} disabled={!body.trim() || posting}>
+            {posting ? "Posting…" : "Post"}
           </button>
         </div>
       </form>

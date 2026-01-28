@@ -16,7 +16,7 @@ export async function listThreads(req: Request, res: Response): Promise<void> {
   try {
     const { projectId } = req.params;
     const pageUrl = req.query.pageUrl as string | undefined;
-    const includeResolved = req.query.includeResolved === "true";
+    const statusFilter = (req.query.status as string) || "open"; // "open" | "resolved" | "all"
 
     if (!pageUrl) {
       res.status(400).json({ error: "pageUrl query param is required" });
@@ -27,9 +27,8 @@ export async function listThreads(req: Request, res: Response): Promise<void> {
       projectId,
       pageUrl,
     };
-    if (!includeResolved) {
-      where.status = "OPEN";
-    }
+    if (statusFilter === "open") where.status = "OPEN";
+    else if (statusFilter === "resolved") where.status = "RESOLVED";
 
     const threads = await prisma.thread.findMany({
       where,
@@ -53,6 +52,13 @@ export async function listThreads(req: Request, res: Response): Promise<void> {
       status: t.status,
       createdBy: t.createdBy,
       createdAt: t.createdAt,
+      resolvedBy: t.resolvedBy ?? null,
+      resolvedAt: t.resolvedAt ? t.resolvedAt.toISOString() : null,
+      assignedTo: (t as { assignedTo?: string | null }).assignedTo ?? null,
+      assignedBy: (t as { assignedBy?: string | null }).assignedBy ?? null,
+      assignedAt: (t as { assignedAt?: Date | null }).assignedAt
+        ? (t as { assignedAt: Date }).assignedAt.toISOString()
+        : null,
       latestComment: t.comments[0] ?? null,
       commentCount: t._count.comments,
     }));
@@ -76,6 +82,10 @@ interface CreateThreadBody {
 export async function createThread(req: Request, res: Response): Promise<void> {
   try {
     const { projectId } = req.params;
+    if (!req.body || typeof req.body !== "object") {
+      res.status(400).json({ error: "Missing or invalid request body" });
+      return;
+    }
     const body = req.body as CreateThreadBody;
     const { pageUrl, selector, xPercent, yPercent, body: commentBody, createdBy } = body;
 
@@ -125,9 +135,50 @@ export async function createThread(req: Request, res: Response): Promise<void> {
       res.status(500).json({ error: "Thread created but not found" });
       return;
     }
-    res.status(201).json(thread);
+
+    const t = thread as { assignedAt?: Date | null };
+    const payload = {
+      ...thread,
+      createdAt: thread.createdAt instanceof Date ? thread.createdAt.toISOString() : thread.createdAt,
+      resolvedAt: thread.resolvedAt instanceof Date ? thread.resolvedAt.toISOString() : thread.resolvedAt ?? null,
+      assignedAt: t.assignedAt instanceof Date ? t.assignedAt.toISOString() : t.assignedAt ?? null,
+      comments: (thread.comments ?? []).map((c) => ({
+        ...c,
+        createdAt: c.createdAt instanceof Date ? c.createdAt.toISOString() : c.createdAt,
+      })),
+    };
+    res.status(201).json(payload);
   } catch (err) {
     console.error("createThread", err);
+    const msg = err instanceof Error ? err.message : String(err);
+    const meta = err && typeof err === "object" && "meta" in err ? (err as { meta: unknown }).meta : undefined;
+    res.status(500).json({
+      error: "Internal server error",
+      ...(process.env.NODE_ENV !== "production" && { detail: msg, meta }),
+    });
+  }
+}
+
+/**
+ * DELETE /api/projects/:projectId/threads?pageUrl=...&status=resolved
+ * Deletes all resolved threads for that project + pageUrl.
+ */
+export async function deleteResolvedThreads(req: Request, res: Response): Promise<void> {
+  try {
+    const { projectId } = req.params;
+    const pageUrl = req.query.pageUrl as string | undefined;
+    if (!pageUrl) {
+      res.status(400).json({ error: "pageUrl query param is required" });
+      return;
+    }
+
+    const result = await prisma.thread.deleteMany({
+      where: { projectId, pageUrl, status: "RESOLVED" },
+    });
+
+    res.json({ deleted: result.count });
+  } catch (err) {
+    console.error("deleteResolvedThreads", err);
     res.status(500).json({ error: "Internal server error" });
   }
 }

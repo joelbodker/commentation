@@ -9,6 +9,76 @@
   box-sizing: border-box;
 }
 
+/* Top-left theme switch: light/dark toggle for the page. */
+.pageThemeSwitch {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  pointer-events: auto;
+  z-index: 2147483647;
+}
+
+.pageThemeToggle {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 4px;
+  border: 1px solid #e5e5e5;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.pageThemeToggle:hover {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
+  border-color: #ddd;
+}
+
+.pageThemeToggle span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  transition: background 0.2s, color 0.2s;
+}
+
+.pageThemeIconOn {
+  background: #f0f4f8;
+  color: #0d99ff;
+}
+
+.pageThemeIconOff {
+  background: transparent;
+  color: #999;
+}
+
+.wrapper[data-theme="dark"] .pageThemeToggle {
+  border-color: #404040;
+  background: #2d2d2d;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.wrapper[data-theme="dark"] .pageThemeToggle:hover {
+  border-color: #505050;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+}
+
+.wrapper[data-theme="dark"] .pageThemeIconOn {
+  background: #1a3a52;
+  color: #5eb8ff;
+}
+
+.wrapper[data-theme="dark"] .pageThemeIconOff {
+  background: transparent;
+  color: #666;
+}
+
 /* Let clicks pass through to the page so "comment mode" page-clicks can place pins.
    Pin buttons themselves use pointer-events: auto so they stay clickable. */
 .pinsLayer {
@@ -21,28 +91,173 @@
   pointer-events: auto;
 }
 
-.fab {
+/* Two-button pillbox: comment (left) toggles comment mode, hamburger (right) toggles sidebar. */
+.pillboxFab {
   position: fixed;
   bottom: 24px;
   right: 24px;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  border: none;
-  background: #0d99ff;
-  color: white;
-  font-size: 20px;
-  cursor: pointer;
+  display: flex;
+  gap: 6px;
+  padding: 6px;
+  border-radius: 28px;
   pointer-events: auto;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  transition: transform 0.15s, background 0.15s;
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15), 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.fab:hover {
-  background: #0b7dd4;
-  transform: scale(1.05);
+.pillboxBtn {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: #333;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: box-shadow 0.2s, transform 0.1s, color 0.2s;
 }
 
-.fab[aria-pressed="true"] {
-  background: #0a6bb5;
+.pillboxBtn:active {
+  transform: scale(0.92);
+}
+
+.pillboxBtn:hover {
+  box-shadow: 0 0 0 2px #0d99ff;
+}
+
+.pillboxBtnActive {
+  box-shadow: 0 0 0 2px #0d99ff;
+}
+
+.pillboxBtnActive:hover {
+  box-shadow: 0 0 0 2px #0b7dd4;
+}
+
+/* Comment icon when active: pastel blue fill + grey icon on top + rotating blue ring */
+.pillboxBtnComment.pillboxBtnActive {
+  background: #b8dcf7;
+  box-shadow: none;
+}
+
+.pillboxBtnComment.pillboxBtnActive .commentIcon {
+  position: relative;
+  z-index: 1;
+  color: #333;
+}
+
+.pillboxBtnComment.pillboxBtnActive::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  border-top-color: #0d99ff;
+  animation: pillboxRingSpin 0.8s linear infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.pillboxBtnComment.pillboxBtnActive:hover::after {
+  border-top-color: #0b7dd4;
+}
+
+@keyframes pillboxRingSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.commentIcon,
+.hamburgerIcon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+/* Shows where you clicked when the comment composer is open. */
+.clickMarker {
+  position: fixed;
+  width: 16px;
+  height: 16px;
+  margin-left: -8px;
+  margin-top: -8px;
+  border-radius: 50%;
+  border: 2px solid #0d99ff;
+  background: rgba(255, 255, 255, 0.9);
+  pointer-events: none;
+  z-index: 2147483646;
+  box-shadow: 0 0 0 2px #fff;
+  animation: clickMarkerPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes clickMarkerPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 0.85;
+  }
+}
+
+/* Dot shown on the page when hovering a resolved task in the sidebar. */
+.resolvedHoverDot {
+  position: fixed;
+  width: 12px;
+  height: 12px;
+  margin-left: -6px;
+  margin-top: -6px;
+  border-radius: 50%;
+  background: rgba(13, 153, 255, 0.5);
+  border: 2px solid #0d99ff;
+  pointer-events: none;
+  z-index: 2147483644;
+}
+
+/* Dark theme: pillbox, buttons, click marker, resolved hover dot */
+.wrapper[data-theme="dark"] .pillboxFab {
+  background: #2d2d2d;
+  border-color: #404040;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.wrapper[data-theme="dark"] .pillboxBtn {
+  color: #e0e0e0;
+}
+
+.wrapper[data-theme="dark"] .pillboxBtn:hover {
+  box-shadow: 0 0 0 2px #5eb8ff;
+}
+
+.wrapper[data-theme="dark"] .pillboxBtnActive {
+  box-shadow: 0 0 0 2px #5eb8ff;
+}
+
+.wrapper[data-theme="dark"] .pillboxBtnComment.pillboxBtnActive {
+  background: #1a3a52;
+}
+
+.wrapper[data-theme="dark"] .pillboxBtnComment.pillboxBtnActive .commentIcon {
+  color: #e0e0e0;
+}
+
+.wrapper[data-theme="dark"] .pillboxBtnComment.pillboxBtnActive::after {
+  border-top-color: #5eb8ff;
+}
+
+.wrapper[data-theme="dark"] .clickMarker {
+  border-color: #5eb8ff;
+  background: rgba(45, 45, 45, 0.95);
+  box-shadow: 0 0 0 2px #1a1a1a;
+}
+
+.wrapper[data-theme="dark"] .resolvedHoverDot {
+  background: rgba(94, 184, 255, 0.5);
+  border-color: #5eb8ff;
 }

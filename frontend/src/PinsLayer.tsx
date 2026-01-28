@@ -4,7 +4,7 @@
  */
 import React from "react";
 import { percentToFixedStyle } from "./anchoring";
-import type { ThreadListItem } from "./api";
+import type { ThreadListItem } from "./store";
 import styles from "./PinsLayer.module.css";
 
 type ThreadWithIndex = ThreadListItem & { index: number };
