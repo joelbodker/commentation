@@ -140,10 +140,10 @@ function OverlayInner() {
       }
       const el = e.target as Element;
       const selector = buildSelector(el);
-      const { xPercent, yPercent } = eventToPercent(e);
+      // Store page-relative position so pins scroll with content
       setPendingPin({
-        x: (xPercent / 100) * window.innerWidth,
-        y: (yPercent / 100) * window.innerHeight,
+        x: e.pageX,
+        y: e.pageY,
         selector,
       });
       // If name isn't saved, open sidebar so they can enter it; composer shows after they save.
@@ -179,8 +179,10 @@ function OverlayInner() {
   const handleComposerPost = useCallback(
     (body: string, name: string) => {
       if (!pendingPin) return;
-      const xPercent = (pendingPin.x / window.innerWidth) * 100;
-      const yPercent = (pendingPin.y / window.innerHeight) * 100;
+      // Convert page-relative position to viewport-relative percentages for storage
+      // (maintaining backward compatibility with existing data structure)
+      const xPercent = ((pendingPin.x - window.scrollX) / window.innerWidth) * 100;
+      const yPercent = ((pendingPin.y - window.scrollY) / window.innerHeight) * 100;
       const thread = store.createThread(projectId, pageUrl, {
         selector: pendingPin.selector,
         xPercent,
@@ -190,7 +192,8 @@ function OverlayInner() {
       });
       setThreads(store.getThreads(projectId, pageUrl, statusFilter));
       setPendingPin(null);
-      setSelectedThreadId(thread.id);
+      setSelectedThreadId(null); // Show tasks list, not the new task detail
+      setSidebarOpen(true); // Open sidebar to show tasks list
       setCommentMode(false);
       addLog(`Task created by ${name}`);
     },
@@ -287,9 +290,23 @@ function OverlayInner() {
         : withOrder;
     return assignedFirst.map((t, i) => ({ ...t, index: i + 1 }));
   }, [threads, statusFilter, taskOrder, createdBy]);
-  const openThreadsForPins = threads
-    .filter((t) => t.status === "OPEN")
-    .map((t, i) => ({ ...t, index: i + 1 }));
+  const openThreadsForPins = useMemo(() => {
+    const filtered = threads.filter((t) => t.status === "OPEN");
+    const withOrder = applyOrder(filtered, taskOrder);
+    const assignedFirst =
+      createdBy.trim()
+        ? [...withOrder].sort((a, b) => {
+            const aMe = a.assignedTo === createdBy.trim();
+            const bMe = b.assignedTo === createdBy.trim();
+            if (aMe && !bMe) return -1;
+            if (!aMe && bMe) return 1;
+            if (aMe && bMe)
+              return new Date(b.assignedAt ?? 0).getTime() - new Date(a.assignedAt ?? 0).getTime();
+            return 0;
+          })
+        : withOrder;
+    return assignedFirst.map((t, i) => ({ ...t, index: i + 1 }));
+  }, [threads, taskOrder, createdBy]);
   const hoveredResolvedThread = hoveredResolvedThreadId
     ? threads.find((t) => t.id === hoveredResolvedThreadId)
     : null;

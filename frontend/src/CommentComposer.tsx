@@ -40,8 +40,7 @@ export function CommentComposer({
     el.style.top = `${top}px`;
   }, [x, y]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const performSubmit = async () => {
     const b = body.trim();
     const name = createdBy.trim() || "Anonymous";
     if (!b || posting) return;
@@ -57,6 +56,19 @@ export function CommentComposer({
       setPostError(err instanceof Error ? err.message : "Failed to post");
     } finally {
       setPosting(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await performSubmit();
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    // Enter submits, Shift+Enter creates new line
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      performSubmit();
     }
   };
 
@@ -77,7 +89,8 @@ export function CommentComposer({
           className={styles.textarea}
           value={body}
           onChange={(e) => setBody(e.target.value)}
-          placeholder="Add a comment..."
+          onKeyDown={handleKeyDown}
+          placeholder="Add a comment... (Enter to submit, Shift+Enter for new line)"
           rows={3}
           autoFocus
           disabled={posting}

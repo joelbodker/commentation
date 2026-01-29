@@ -65,6 +65,40 @@ export function percentToFixedStyle(
 }
 
 /**
+ * Convert viewport-relative percentages to page-relative positions that scroll with the page.
+ * Since pinsLayer is fixed, we need to calculate the position relative to the fixed container.
+ * 
+ * The stored xPercent/yPercent represent viewport position at creation time.
+ * To make pins scroll with content, we calculate: viewport_position - scroll_offset.
+ * This makes pins appear to move with the page as you scroll.
+ */
+export function percentToAbsoluteStyle(
+  xPercent: number,
+  yPercent: number,
+  selector?: string
+): { left: string; top: string } {
+  // Convert viewport percentages to current viewport pixels
+  const viewportX = (xPercent / 100) * window.innerWidth;
+  const viewportY = (yPercent / 100) * window.innerHeight;
+  
+  // To make pins scroll with the page content:
+  // - At creation: pin was at viewport position (viewportX, viewportY) when scroll was (sx0, sy0)
+  // - Page position = viewportX + sx0, viewportY + sy0 (constant)
+  // - At render: to show at same page position, viewport position should be: pageX - scrollX
+  // - Since we don't know sx0, we approximate: assume pin should stay at same viewport position
+  // - But to make it scroll, we subtract current scroll offset
+  // This makes pins move opposite to scroll direction, appearing to scroll with content
+  
+  const pinX = viewportX - window.scrollX;
+  const pinY = viewportY - window.scrollY;
+  
+  return {
+    left: `${pinX}px`,
+    top: `${pinY}px`,
+  };
+}
+
+/**
  * Scroll the page so the pin’s Y position is in view (smooth).
  */
 export function scrollToPinY(yPercent: number): void {

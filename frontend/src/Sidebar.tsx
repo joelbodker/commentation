@@ -150,8 +150,7 @@ function ThreadDetail({
   const [resolving, setResolving] = useState(false);
   const [assigning, setAssigning] = useState(false);
 
-  const handleReply = (e: React.FormEvent) => {
-    e.preventDefault();
+  const performReply = () => {
     const b = reply.trim();
     const name = createdBy.trim() || "Anonymous";
     if (!b || posting) return;
@@ -161,6 +160,19 @@ function ThreadDetail({
     setReply("");
     onRefresh();
     setPosting(false);
+  };
+
+  const handleReply = (e: React.FormEvent) => {
+    e.preventDefault();
+    performReply();
+  };
+
+  const handleReplyKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    // Enter submits, Shift+Enter creates new line
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      performReply();
+    }
   };
 
   const handleToggleResolved = () => {
@@ -245,7 +257,8 @@ function ThreadDetail({
           className={styles.replyInput}
           value={reply}
           onChange={(e) => setReply(e.target.value)}
-          placeholder="Write a reply..."
+          onKeyDown={handleReplyKeyDown}
+          placeholder="Write a reply... (Enter to submit, Shift+Enter for new line)"
           rows={2}
           disabled={posting}
         />
@@ -354,7 +367,25 @@ export function Sidebar({
   const [confettiTrigger, setConfettiTrigger] = useState(false);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [dropIndex, setDropIndex] = useState<number | null>(null);
+  const [deletingThreadIds, setDeletingThreadIds] = useState<Set<string>>(new Set());
   const prevOpenRef = useRef(false);
+
+  const handleDeleteClick = useCallback(
+    (threadId: string) => {
+      // Mark as deleting to trigger animation
+      setDeletingThreadIds((prev) => new Set(prev).add(threadId));
+      // Wait for animation to complete before actually deleting
+      setTimeout(() => {
+        onDeleteThread?.(threadId);
+        setDeletingThreadIds((prev) => {
+          const next = new Set(prev);
+          next.delete(threadId);
+          return next;
+        });
+      }, 300); // Match animation duration (0.3s)
+    },
+    [onDeleteThread]
+  );
 
   useEffect(() => {
     if (!confettiTrigger) return;
@@ -592,7 +623,7 @@ export function Sidebar({
                 {threads.map((t, i) => (
                   <li
                     key={t.id}
-                    className={`${styles.listItem} ${dropIndex === i ? styles.listItemDropTarget : ""} ${dragIndex === i ? styles.listItemDragging : ""}`}
+                    className={`${styles.listItem} ${dropIndex === i ? styles.listItemDropTarget : ""} ${dragIndex === i ? styles.listItemDragging : ""} ${deletingThreadIds.has(t.id) ? styles.listItemDeleting : ""}`}
                     onDragOver={(e) => {
                       e.preventDefault();
                       e.dataTransfer.dropEffect = "move";
@@ -673,7 +704,7 @@ export function Sidebar({
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            onDeleteThread(t.id);
+                            handleDeleteClick(t.id);
                           }}
                           title="Delete this resolved comment"
                           aria-label="Delete this comment"
