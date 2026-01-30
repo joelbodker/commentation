@@ -4,7 +4,7 @@
  */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ConfigProvider, useConfig } from "./config";
-import * as store from "./store";
+import * as source from "./source";
 import type { ThreadListItem } from "./store";
 import { scrollToPinY, buildSelector, eventToPercent } from "./anchoring";
 import { PinsLayer } from "./PinsLayer";
@@ -108,10 +108,18 @@ function OverlayInner() {
     }
   }, [projectId, pageUrl]);
 
-  const fetchThreads = useCallback(() => {
+  const fetchThreads = useCallback(async () => {
     setError(null);
-    setThreads(store.getThreads(projectId, pageUrl, statusFilter));
-    setLoading(false);
+    setLoading(true);
+    try {
+      const list = await source.getThreads(projectId, pageUrl, statusFilter);
+      setThreads(list);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load threads");
+      setThreads([]);
+    } finally {
+      setLoading(false);
+    }
   }, [projectId, pageUrl, statusFilter]);
 
   useEffect(() => {
@@ -177,27 +185,29 @@ function OverlayInner() {
   }, []);
 
   const handleComposerPost = useCallback(
-    (body: string, name: string) => {
+    async (body: string, name: string) => {
       if (!pendingPin) return;
-      // Convert page-relative position to viewport-relative percentages for storage
-      // (maintaining backward compatibility with existing data structure)
       const xPercent = ((pendingPin.x - window.scrollX) / window.innerWidth) * 100;
       const yPercent = ((pendingPin.y - window.scrollY) / window.innerHeight) * 100;
-      const thread = store.createThread(projectId, pageUrl, {
-        selector: pendingPin.selector,
-        xPercent,
-        yPercent,
-        body,
-        createdBy: name,
-      });
-      setThreads(store.getThreads(projectId, pageUrl, statusFilter));
-      setPendingPin(null);
-      setSelectedThreadId(null); // Show tasks list, not the new task detail
-      setSidebarOpen(true); // Open sidebar to show tasks list
-      setCommentMode(false);
-      addLog(`Task created by ${name}`);
+      try {
+        await source.createThread(projectId, pageUrl, {
+          selector: pendingPin.selector,
+          xPercent,
+          yPercent,
+          body,
+          createdBy: name,
+        });
+        await fetchThreads();
+        setPendingPin(null);
+        setSelectedThreadId(null);
+        setSidebarOpen(true);
+        setCommentMode(false);
+        addLog(`Task created by ${name}`);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to create task");
+      }
     },
-    [projectId, pageUrl, statusFilter, pendingPin, addLog]
+    [projectId, pageUrl, statusFilter, pendingPin, addLog, fetchThreads]
   );
 
   const handleSelectThread = useCallback((id: string) => {
@@ -213,7 +223,7 @@ function OverlayInner() {
   }, [fetchThreads]);
 
   const handleDeleteThread = useCallback(
-    (threadId: string) => {
+    async (threadId: string) => {
       const t = threads.find((x) => x.id === threadId);
       const openList = threads.filter((x) => x.status === "OPEN");
       const idx = t && openList.length ? openList.findIndex((x) => x.id === threadId) + 1 : null;
@@ -222,39 +232,64 @@ function OverlayInner() {
           ? `Task #${idx} deleted by ${createdBy.trim() || "Anonymous"}`
           : `Task deleted by ${createdBy.trim() || "Anonymous"}`
       );
-      store.deleteThread(projectId, pageUrl, threadId);
-      setThreads(store.getThreads(projectId, pageUrl, statusFilter));
+      try {
+        await source.deleteThread(projectId, pageUrl, threadId);
+        await fetchThreads();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to delete task");
+      }
     },
-    [projectId, pageUrl, statusFilter, threads, createdBy, addLog]
+    [projectId, pageUrl, statusFilter, threads, createdBy, addLog, fetchThreads]
   );
 
-  const getThread = useCallback(
-    (threadId: string) => store.getThread(projectId, pageUrl, threadId),
-    [projectId, pageUrl]
-  );
+  const [detailThread, setDetailThread] = useState<ThreadListItem | null>(null);
+  useEffect(() => {
+    if (!selectedThreadId) {
+      setDetailThread(null);
+      return;
+    }
+    const fromList = threads.find((t) => t.id === selectedThreadId);
+    if (fromList) {
+      setDetailThread(fromList);
+      return;
+    }
+    source.getThread(projectId, pageUrl, selectedThreadId).then((t) => setDetailThread(t));
+  }, [selectedThreadId, threads, projectId, pageUrl]);
 
   const handleAddComment = useCallback(
-    (threadId: string, body: string, createdBy: string) => {
-      store.addComment(projectId, pageUrl, threadId, body, createdBy);
-      setThreads(store.getThreads(projectId, pageUrl, statusFilter));
+    async (threadId: string, body: string, createdByName: string) => {
+      try {
+        await source.addComment(projectId, pageUrl, threadId, body, createdByName);
+        await fetchThreads();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to add reply");
+      }
     },
-    [projectId, pageUrl, statusFilter]
+    [projectId, pageUrl, fetchThreads]
   );
 
   const handleUpdateThreadStatus = useCallback(
-    (threadId: string, status: "OPEN" | "RESOLVED", resolvedBy?: string) => {
-      store.updateThreadStatus(projectId, pageUrl, threadId, status, resolvedBy);
-      setThreads(store.getThreads(projectId, pageUrl, statusFilter));
+    async (threadId: string, status: "OPEN" | "RESOLVED", resolvedBy?: string) => {
+      try {
+        await source.updateThreadStatus(projectId, pageUrl, threadId, status, resolvedBy);
+        await fetchThreads();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to update status");
+      }
     },
-    [projectId, pageUrl, statusFilter]
+    [projectId, pageUrl, fetchThreads]
   );
 
   const handleAssignThread = useCallback(
-    (threadId: string, assignedTo: string, assignedBy: string) => {
-      store.assignThread(projectId, pageUrl, threadId, assignedTo, assignedBy);
-      setThreads(store.getThreads(projectId, pageUrl, statusFilter));
+    async (threadId: string, assignedTo: string, assignedBy: string) => {
+      try {
+        await source.assignThread(projectId, pageUrl, threadId, assignedTo, assignedBy);
+        await fetchThreads();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to assign");
+      }
     },
-    [projectId, pageUrl, statusFilter]
+    [projectId, pageUrl, fetchThreads]
   );
 
   const handleReorder = useCallback(
@@ -410,7 +445,7 @@ function OverlayInner() {
         onPersistName={persistName}
         showNameRequiredPrompt={!!pendingPin && !createdBy.trim()}
         projectId={projectId}
-        getThread={getThread}
+        selectedThread={detailThread}
         onAddComment={handleAddComment}
         onUpdateThreadStatus={handleUpdateThreadStatus}
         onAssignThread={handleAssignThread}

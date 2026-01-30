@@ -140,9 +140,9 @@ function ThreadDetail({
   onRefresh: () => void;
   onBack: () => void;
   onResolved?: () => void;
-  onAddComment: (threadId: string, body: string, createdBy: string) => void;
-  onUpdateThreadStatus: (threadId: string, status: "OPEN" | "RESOLVED", resolvedBy?: string) => void;
-  onAssignThread: (threadId: string, assignedTo: string, assignedBy: string) => void;
+  onAddComment: (threadId: string, body: string, createdBy: string) => void | Promise<void>;
+  onUpdateThreadStatus: (threadId: string, status: "OPEN" | "RESOLVED", resolvedBy?: string) => void | Promise<void>;
+  onAssignThread: (threadId: string, assignedTo: string, assignedBy: string) => void | Promise<void>;
   addLog?: (msg: string) => void;
 }) {
   const [reply, setReply] = useState("");
@@ -150,16 +150,19 @@ function ThreadDetail({
   const [resolving, setResolving] = useState(false);
   const [assigning, setAssigning] = useState(false);
 
-  const performReply = () => {
+  const performReply = async () => {
     const b = reply.trim();
     const name = createdBy.trim() || "Anonymous";
     if (!b || posting) return;
     setPosting(true);
-    onAddComment(threadId, b, name);
-    addLog?.(`Reply on task #${threadIndex} by ${name}`);
-    setReply("");
-    onRefresh();
-    setPosting(false);
+    try {
+      await onAddComment(threadId, b, name);
+      addLog?.(`Reply on task #${threadIndex} by ${name}`);
+      setReply("");
+      onRefresh();
+    } finally {
+      setPosting(false);
+    }
   };
 
   const handleReply = (e: React.FormEvent) => {
@@ -175,30 +178,36 @@ function ThreadDetail({
     }
   };
 
-  const handleToggleResolved = () => {
+  const handleToggleResolved = async () => {
     if (!thread || resolving) return;
     const next = thread.status === "OPEN" ? "RESOLVED" : "OPEN";
     const name = createdBy.trim() || "Anonymous";
     setResolving(true);
-    onUpdateThreadStatus(threadId, next, next === "RESOLVED" ? name : undefined);
-    if (next === "RESOLVED") {
-      addLog?.(`Task #${threadIndex} resolved by ${name}`);
-      onResolved?.();
-    } else {
-      addLog?.(`Task #${threadIndex} reopened by ${name}`);
+    try {
+      await onUpdateThreadStatus(threadId, next, next === "RESOLVED" ? name : undefined);
+      if (next === "RESOLVED") {
+        addLog?.(`Task #${threadIndex} resolved by ${name}`);
+        onResolved?.();
+      } else {
+        addLog?.(`Task #${threadIndex} reopened by ${name}`);
+      }
+      onRefresh();
+    } finally {
+      setResolving(false);
     }
-    onRefresh();
-    setResolving(false);
   };
 
-  const handleAssignToMe = () => {
+  const handleAssignToMe = async () => {
     if (!thread || assigning || thread.status !== "OPEN") return;
     const name = createdBy.trim() || "Anonymous";
     setAssigning(true);
-    onAssignThread(threadId, name, name);
-    addLog?.(`Task #${threadIndex} assigned to ${name} by ${name}`);
-    onRefresh();
-    setAssigning(false);
+    try {
+      await onAssignThread(threadId, name, name);
+      addLog?.(`Task #${threadIndex} assigned to ${name} by ${name}`);
+      onRefresh();
+    } finally {
+      setAssigning(false);
+    }
   };
 
   if (!thread) {
@@ -319,7 +328,7 @@ export function Sidebar({
   onPersistName,
   showNameRequiredPrompt = false,
   projectId,
-  getThread,
+  selectedThread,
   onAddComment,
   onUpdateThreadStatus,
   onAssignThread,
@@ -348,10 +357,10 @@ export function Sidebar({
   onPersistName: (name: string) => void;
   showNameRequiredPrompt?: boolean;
   projectId: string;
-  getThread: (threadId: string) => Thread | null;
-  onAddComment: (threadId: string, body: string, createdBy: string) => void;
-  onUpdateThreadStatus: (threadId: string, status: "OPEN" | "RESOLVED", resolvedBy?: string) => void;
-  onAssignThread: (threadId: string, assignedTo: string, assignedBy: string) => void;
+  selectedThread: Thread | null;
+  onAddComment: (threadId: string, body: string, createdBy: string) => void | Promise<void>;
+  onUpdateThreadStatus: (threadId: string, status: "OPEN" | "RESOLVED", resolvedBy?: string) => void | Promise<void>;
+  onAssignThread: (threadId: string, assignedTo: string, assignedBy: string) => void | Promise<void>;
   activityLog?: ActivityLogEntry[];
   addLog?: (msg: string) => void;
   onDeleteThread?: (threadId: string) => void;
@@ -557,7 +566,7 @@ export function Sidebar({
         {showDetail ? (
           <ThreadDetail
             threadId={detailThreadId!}
-            thread={getThread(detailThreadId!)}
+            thread={selectedThread}
             threadIndex={threads.find((t) => t.id === detailThreadId)?.index ?? 0}
             createdBy={createdBy}
             onCreatedByChange={onCreatedByChange}

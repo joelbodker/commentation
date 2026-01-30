@@ -1,0 +1,38 @@
+{
+  "projects": {
+    "walkwise-web": {
+      "http://localhost:5173/": {
+        "threads": [
+          {
+            "id": "ml0cvs9m-0sazfiqf1",
+            "projectId": "walkwise-web",
+            "pageUrl": "http://localhost:5173/",
+            "selector": "body",
+            "xPercent": 50,
+            "yPercent": 50,
+            "status": "OPEN",
+            "createdBy": "Dev",
+            "createdAt": "2026-01-30T04:01:17.530Z",
+            "resolvedBy": null,
+            "resolvedAt": null,
+            "assignedTo": null,
+            "assignedBy": null,
+            "assignedAt": null,
+            "comments": [
+              {
+                "id": "ml0cvs9m-wylzbhdsn",
+                "threadId": "ml0cvs9m-0sazfiqf1",
+                "body": "Test comment",
+                "createdBy": "Dev",
+                "createdAt": "2026-01-30T04:01:17.530Z"
+              }
+            ]
+          }
+        ],
+        "order": [
+          "ml0cvs9m-0sazfiqf1"
+        ]
+      }
+    }
+  }
+}
