@@ -138,18 +138,28 @@ export function commentationPlugin(): Plugin {
           }
 
           // GET /api/projects/:projectId/threads?pageUrl=...&status=open|resolved|all
+          // pageUrl optional: omit to get threads from ALL pages
           const listMatch = path.match(/^\/projects\/([^/]+)\/threads$/);
           if (listMatch && method === "GET") {
             const projectId = listMatch[1];
             const pageUrl = url.searchParams.get("pageUrl");
             const statusFilter = url.searchParams.get("status") || "open";
-            if (!pageUrl) {
-              return sendJson(400, { error: "pageUrl query param is required" });
-            }
             const data = loadData(root);
-            const page = getPageData(data, projectId, pageUrl);
             const status = statusFilter === "resolved" ? "RESOLVED" : statusFilter === "all" ? null : "OPEN";
-            let threads = page.threads.filter((t) => status === null || t.status === status);
+            let threads: Thread[] = [];
+            if (pageUrl) {
+              const page = getPageData(data, projectId, pageUrl);
+              threads = page.threads.filter((t) => status === null || t.status === status);
+            } else {
+              const pages = data.projects[projectId];
+              if (pages) {
+                for (const pageData of Object.values(pages)) {
+                  threads = threads.concat(
+                    pageData.threads.filter((t) => status === null || t.status === status)
+                  );
+                }
+              }
+            }
             threads = threads.map((t) => {
               const comments = t.comments ?? [];
               const latest = comments.length > 0 ? comments[comments.length - 1] : null;

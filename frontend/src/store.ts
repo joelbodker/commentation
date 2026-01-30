@@ -64,12 +64,20 @@ function getList(projectId: string, pageUrl: string): Thread[] {
 
 export function getThreads(
   projectId: string,
-  pageUrl: string,
-  statusFilter: "open" | "resolved"
+  pageUrl: string | null,
+  statusFilter: "open" | "resolved" | "all"
 ): ThreadListItem[] {
-  const list = getList(projectId, pageUrl);
-  const status = statusFilter === "open" ? "OPEN" : "RESOLVED";
-  return list.filter((t) => t.status === status).map(toListItem);
+  const status = statusFilter === "all" ? null : statusFilter === "open" ? "OPEN" : "RESOLVED";
+  if (pageUrl) {
+    const list = getList(projectId, pageUrl);
+    return list.filter((t) => status === null || t.status === status).map(toListItem);
+  }
+  const prefix = `${projectId}\0`;
+  const all: Thread[] = [];
+  for (const [k, list] of byKey) {
+    if (k.startsWith(prefix)) all.push(...list);
+  }
+  return all.filter((t) => status === null || t.status === status).map(toListItem);
 }
 
 export function createThread(
@@ -116,11 +124,21 @@ export function createThread(
 
 export function getThread(
   projectId: string,
-  pageUrl: string,
+  pageUrl: string | null,
   threadId: string
 ): Thread | null {
-  const list = getList(projectId, pageUrl);
-  return list.find((t) => t.id === threadId) ?? null;
+  if (pageUrl) {
+    const list = getList(projectId, pageUrl);
+    return list.find((t) => t.id === threadId) ?? null;
+  }
+  const prefix = `${projectId}\0`;
+  for (const [k, list] of byKey) {
+    if (k.startsWith(prefix)) {
+      const t = list.find((x) => x.id === threadId);
+      if (t) return t;
+    }
+  }
+  return null;
 }
 
 export function addComment(

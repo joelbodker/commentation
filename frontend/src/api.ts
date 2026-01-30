@@ -69,12 +69,14 @@ export async function checkAvailable(): Promise<boolean> {
 
 export async function getThreads(
   projectId: string,
-  pageUrl: string,
-  statusFilter: "open" | "resolved"
+  pageUrl: string | null,
+  statusFilter: "open" | "resolved" | "all"
 ): Promise<ThreadListItem[]> {
   const base = baseUrl();
-  const status = statusFilter === "open" ? "open" : "resolved";
-  const url = `${base}/api/projects/${encodeURIComponent(projectId)}/threads?pageUrl=${encodeURIComponent(pageUrl)}&status=${status}`;
+  const status = statusFilter === "all" ? "all" : statusFilter === "open" ? "open" : "resolved";
+  const url = pageUrl
+    ? `${base}/api/projects/${encodeURIComponent(projectId)}/threads?pageUrl=${encodeURIComponent(pageUrl)}&status=${status}`
+    : `${base}/api/projects/${encodeURIComponent(projectId)}/threads?status=${status}`;
   return fetchJson<ThreadListItem[]>(url);
 }
 

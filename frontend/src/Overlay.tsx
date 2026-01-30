@@ -16,6 +16,35 @@ const NAME_STORAGE_KEY_PREFIX = "fig-comments-name-";
 const THEME_STORAGE_KEY = "commentation-theme";
 const ORDER_STORAGE_KEY_PREFIX = "commentation-order-";
 
+/**
+ * Click marker - blue circle that appears where you click.
+ * Centered on the click point by offsetting by half the marker size.
+ */
+function ClickMarker({ x, y }: { x: number; y: number }) {
+  // Center the 16x16 marker on the click point
+  const left = x - 8;
+  const top = y - 8;
+  
+  return (
+    <div
+      style={{
+        position: "fixed",
+        left: `${left}px`,
+        top: `${top}px`,
+        width: 16,
+        height: 16,
+        borderRadius: "50%",
+        border: "2px solid #0d99ff",
+        background: "rgba(255, 255, 255, 0.9)",
+        pointerEvents: "none",
+        zIndex: 2147483646,
+        boxShadow: "0 0 0 2px #fff",
+      }}
+      aria-hidden
+    />
+  );
+}
+
 function orderKey(projectId: string, pageUrl: string): string {
   return `${ORDER_STORAGE_KEY_PREFIX}${projectId}-${pageUrl.length}-${pageUrl.slice(0, 120)}`;
 }
@@ -57,6 +86,7 @@ function OverlayInner() {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [inboxUnreadCount, setInboxUnreadCount] = useState(0);
   const [activityLog, setActivityLog] = useState<{ id: string; message: string; timestamp: string }[]>([]);
   const [taskOrder, setTaskOrder] = useState<string[]>(() => {
     if (typeof window === "undefined") return [];
@@ -81,16 +111,19 @@ function OverlayInner() {
 
   const persistName = useCallback(
     (name: string) => {
+      const trimmed = name.trim();
+      if (!trimmed) return;
       try {
-        localStorage.setItem(NAME_STORAGE_KEY_PREFIX + projectId, name);
+        localStorage.setItem(NAME_STORAGE_KEY_PREFIX + projectId, trimmed);
       } catch {
         /* ignore */
       }
-      setCreatedBy(name);
+      setCreatedBy(trimmed);
+      addLog(`Name saved: ${trimmed}`);
       // If they were waiting to place a comment, close sidebar so the composer appears at the click.
       if (pendingPin) setSidebarOpen(false);
     },
-    [projectId, pendingPin]
+    [projectId, pendingPin, addLog]
   );
 
   const pageUrl = typeof window !== "undefined" ? window.location.href : "";
@@ -112,7 +145,7 @@ function OverlayInner() {
     setError(null);
     setLoading(true);
     try {
-      const list = await source.getThreads(projectId, pageUrl, statusFilter);
+      const list = await source.getThreads(projectId, null, "all");
       setThreads(list);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load threads");
@@ -120,7 +153,7 @@ function OverlayInner() {
     } finally {
       setLoading(false);
     }
-  }, [projectId, pageUrl, statusFilter]);
+  }, [projectId]);
 
   useEffect(() => {
     fetchThreads();
@@ -148,10 +181,10 @@ function OverlayInner() {
       }
       const el = e.target as Element;
       const selector = buildSelector(el);
-      // Store page-relative position so pins scroll with content
+      // Store clientX/clientY for marker & composer; use for xPercent/yPercent in post
       setPendingPin({
-        x: e.pageX,
-        y: e.pageY,
+        x: e.clientX,
+        y: e.clientY,
         selector,
       });
       // If name isn't saved, open sidebar so they can enter it; composer shows after they save.
@@ -187,8 +220,8 @@ function OverlayInner() {
   const handleComposerPost = useCallback(
     async (body: string, name: string) => {
       if (!pendingPin) return;
-      const xPercent = ((pendingPin.x - window.scrollX) / window.innerWidth) * 100;
-      const yPercent = ((pendingPin.y - window.scrollY) / window.innerHeight) * 100;
+      const xPercent = (pendingPin.x / window.innerWidth) * 100;
+      const yPercent = (pendingPin.y / window.innerHeight) * 100;
       try {
         await source.createThread(projectId, pageUrl, {
           selector: pendingPin.selector,
@@ -232,14 +265,15 @@ function OverlayInner() {
           ? `Task #${idx} deleted by ${createdBy.trim() || "Anonymous"}`
           : `Task deleted by ${createdBy.trim() || "Anonymous"}`
       );
+      const threadPageUrl = t?.pageUrl ?? pageUrl;
       try {
-        await source.deleteThread(projectId, pageUrl, threadId);
+        await source.deleteThread(projectId, threadPageUrl, threadId);
         await fetchThreads();
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to delete task");
       }
     },
-    [projectId, pageUrl, statusFilter, threads, createdBy, addLog, fetchThreads]
+    [projectId, pageUrl, threads, createdBy, addLog, fetchThreads]
   );
 
   const [detailThread, setDetailThread] = useState<ThreadListItem | null>(null);
@@ -253,43 +287,43 @@ function OverlayInner() {
       setDetailThread(fromList);
       return;
     }
-    source.getThread(projectId, pageUrl, selectedThreadId).then((t) => setDetailThread(t));
-  }, [selectedThreadId, threads, projectId, pageUrl]);
+    source.getThread(projectId, null, selectedThreadId).then((t) => setDetailThread(t));
+  }, [selectedThreadId, threads, projectId]);
 
   const handleAddComment = useCallback(
-    async (threadId: string, body: string, createdByName: string) => {
+    async (threadId: string, threadPageUrl: string, body: string, createdByName: string) => {
       try {
-        await source.addComment(projectId, pageUrl, threadId, body, createdByName);
+        await source.addComment(projectId, threadPageUrl, threadId, body, createdByName);
         await fetchThreads();
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to add reply");
       }
     },
-    [projectId, pageUrl, fetchThreads]
+    [projectId, fetchThreads]
   );
 
   const handleUpdateThreadStatus = useCallback(
-    async (threadId: string, status: "OPEN" | "RESOLVED", resolvedBy?: string) => {
+    async (threadId: string, threadPageUrl: string, status: "OPEN" | "RESOLVED", resolvedBy?: string) => {
       try {
-        await source.updateThreadStatus(projectId, pageUrl, threadId, status, resolvedBy);
+        await source.updateThreadStatus(projectId, threadPageUrl, threadId, status, resolvedBy);
         await fetchThreads();
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to update status");
       }
     },
-    [projectId, pageUrl, fetchThreads]
+    [projectId, fetchThreads]
   );
 
   const handleAssignThread = useCallback(
-    async (threadId: string, assignedTo: string, assignedBy: string) => {
+    async (threadId: string, threadPageUrl: string, assignedTo: string, assignedBy: string) => {
       try {
-        await source.assignThread(projectId, pageUrl, threadId, assignedTo, assignedBy);
+        await source.assignThread(projectId, threadPageUrl, threadId, assignedTo, assignedBy);
         await fetchThreads();
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to assign");
       }
     },
-    [projectId, pageUrl, fetchThreads]
+    [projectId, fetchThreads]
   );
 
   const handleReorder = useCallback(
@@ -307,10 +341,29 @@ function OverlayInner() {
     [projectId, pageUrl]
   );
 
+  const knownNames = useMemo(() => {
+    const names = new Set<string>();
+    for (const t of threads) {
+      if (t.createdBy?.trim()) names.add(t.createdBy.trim());
+      if (t.assignedTo?.trim()) names.add(t.assignedTo.trim());
+      if (t.assignedBy?.trim()) names.add(t.assignedBy.trim());
+      if (t.resolvedBy?.trim()) names.add(t.resolvedBy.trim());
+      for (const c of t.comments ?? []) {
+        if (c.createdBy?.trim()) names.add(c.createdBy.trim());
+      }
+    }
+    if (createdBy.trim()) names.add(createdBy.trim());
+    return Array.from(names).sort();
+  }, [threads, createdBy]);
+
   const numberedThreads = useMemo(() => {
-    const filter = statusFilter === "open" ? "OPEN" : "RESOLVED";
-    const filtered = threads.filter((t) => t.status === filter);
-    const withOrder = applyOrder(filtered, taskOrder);
+    const status = statusFilter === "open" ? "OPEN" : "RESOLVED";
+    const filtered = threads.filter((t) => t.status === status);
+    const currentPageOnly = filtered.filter((t) => t.pageUrl === pageUrl);
+    const withOrder =
+      currentPageOnly.length === filtered.length
+        ? applyOrder(filtered, taskOrder)
+        : [...filtered].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
     const assignedFirst =
       statusFilter === "open" && createdBy.trim()
         ? [...withOrder].sort((a, b) => {
@@ -324,10 +377,10 @@ function OverlayInner() {
           })
         : withOrder;
     return assignedFirst.map((t, i) => ({ ...t, index: i + 1 }));
-  }, [threads, statusFilter, taskOrder, createdBy]);
+  }, [threads, statusFilter, taskOrder, createdBy, pageUrl]);
   const openThreadsForPins = useMemo(() => {
-    const filtered = threads.filter((t) => t.status === "OPEN");
-    const withOrder = applyOrder(filtered, taskOrder);
+    const currentPageThreads = threads.filter((t) => t.pageUrl === pageUrl && t.status === "OPEN");
+    const withOrder = applyOrder(currentPageThreads, taskOrder);
     const assignedFirst =
       createdBy.trim()
         ? [...withOrder].sort((a, b) => {
@@ -341,7 +394,7 @@ function OverlayInner() {
           })
         : withOrder;
     return assignedFirst.map((t, i) => ({ ...t, index: i + 1 }));
-  }, [threads, taskOrder, createdBy]);
+  }, [threads, taskOrder, createdBy, pageUrl]);
   const hoveredResolvedThread = hoveredResolvedThreadId
     ? threads.find((t) => t.id === hoveredResolvedThreadId)
     : null;
@@ -359,6 +412,14 @@ function OverlayInner() {
     document.body.setAttribute("data-theme", theme);
     return () => document.body.removeAttribute("data-theme");
   }, [theme]);
+
+  const prevSidebarOpenRef = useRef(sidebarOpen);
+  useEffect(() => {
+    if (prevSidebarOpenRef.current && !sidebarOpen) {
+      (document.activeElement as HTMLElement | null)?.blur();
+    }
+    prevSidebarOpenRef.current = sidebarOpen;
+  }, [sidebarOpen]);
 
   return (
     <div className={styles.wrapper} data-theme={theme}>
@@ -385,6 +446,8 @@ function OverlayInner() {
           onSelect={handleSelectThread}
         />
       </div>
+      {/* Click marker - positioned at click location */}
+      {pendingPin && <ClickMarker x={pendingPin.x} y={pendingPin.y} />}
       {/* When hovering a resolved task in the sidebar, show a dot at its original pin location. */}
       {hoveredResolvedThread && statusFilter === "resolved" && (
         <div
@@ -397,7 +460,7 @@ function OverlayInner() {
         />
       )}
 
-      <div className={styles.pillboxFab} aria-label="Commentation">
+      <div className={`${styles.pillboxFab} ${sidebarOpen ? styles.pillboxFabSingle : ""}`} aria-label="Commentation">
         <button
           type="button"
           className={`${styles.pillboxBtn} ${styles.pillboxBtnComment} ${commentMode ? styles.pillboxBtnActive : ""}`}
@@ -411,7 +474,7 @@ function OverlayInner() {
         </button>
         <button
           type="button"
-          className={`${styles.pillboxBtn} ${styles.pillboxBtnMenu} ${sidebarOpen ? styles.pillboxBtnActive : ""}`}
+          className={`${styles.pillboxBtn} ${styles.pillboxBtnMenu} ${sidebarOpen ? styles.pillboxBtnActive : ""} ${sidebarOpen ? styles.pillboxBtnMenuHidden : ""}`}
           onClick={() => {
             const next = !sidebarOpen;
             setSidebarOpen(next);
@@ -425,6 +488,9 @@ function OverlayInner() {
             <line x1="3" y1="12" x2="21" y2="12" />
             <line x1="3" y1="18" x2="21" y2="18" />
           </svg>
+          {!sidebarOpen && inboxUnreadCount > 0 && (
+            <span className={styles.pillboxDot} aria-hidden />
+          )}
         </button>
       </div>
 
@@ -444,8 +510,10 @@ function OverlayInner() {
         onCreatedByChange={setCreatedBy}
         onPersistName={persistName}
         showNameRequiredPrompt={!!pendingPin && !createdBy.trim()}
+        knownNames={knownNames}
         projectId={projectId}
         selectedThread={detailThread}
+        showReorder={numberedThreads.length > 0 && numberedThreads.every((t) => t.pageUrl === pageUrl)}
         onAddComment={handleAddComment}
         onUpdateThreadStatus={handleUpdateThreadStatus}
         onAssignThread={handleAssignThread}
@@ -457,18 +525,11 @@ function OverlayInner() {
         commentMode={commentMode}
         theme={theme}
         onThemeChange={handleThemeChange}
+        onInboxUnreadChange={setInboxUnreadCount}
       />
 
       {pendingPin && (
         <>
-          <div
-            className={styles.clickMarker}
-            style={{
-              left: pendingPin.x,
-              top: pendingPin.y,
-            }}
-            aria-hidden
-          />
           {createdBy.trim() && (
             <CommentComposer
               x={pendingPin.x}

@@ -104,6 +104,16 @@
   background: #fff;
   border: 1px solid #e5e5e5;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15), 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 2147483647;
+  overflow: hidden;
+  width: 106px;
+  transition: width 0.2s ease, gap 0.2s ease;
+}
+
+/* When sidebar open: pillbox shrinks to single comment button, hamburger slides out. */
+.pillboxFabSingle {
+  width: 56px;
+  gap: 0;
 }
 
 .pillboxBtn {
@@ -119,6 +129,11 @@
   align-items: center;
   justify-content: center;
   transition: box-shadow 0.2s, transform 0.1s, color 0.2s;
+  outline: none;
+}
+
+.pillboxBtn:focus-visible {
+  box-shadow: 0 0 0 2px #0d99ff;
 }
 
 .pillboxBtn:active {
@@ -178,6 +193,38 @@
   flex-shrink: 0;
 }
 
+.pillboxBtnMenuHidden {
+  opacity: 0;
+  pointer-events: none;
+  min-width: 0;
+  width: 0;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+  transition: opacity 0.15s ease, width 0.2s ease, min-width 0.2s ease;
+}
+
+.pillboxDot {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 8px;
+  height: 8px;
+  background: #e53935;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px #fff, 0 0 8px 2px rgba(229, 57, 53, 0.6);
+  animation: pillboxDotPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pillboxDotPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 2px #fff, 0 0 8px 2px rgba(229, 57, 53, 0.6);
+  }
+  50% {
+    box-shadow: 0 0 0 2px #fff, 0 0 12px 4px rgba(229, 57, 53, 0.8);
+  }
+}
+
 /* Shows where you clicked when the comment composer is open. */
 .clickMarker {
   position: fixed;
@@ -231,6 +278,10 @@
   color: #e0e0e0;
 }
 
+.wrapper[data-theme="dark"] .pillboxBtn:focus-visible {
+  box-shadow: 0 0 0 2px #5eb8ff;
+}
+
 .wrapper[data-theme="dark"] .pillboxBtn:hover {
   box-shadow: 0 0 0 2px #5eb8ff;
 }
@@ -249,6 +300,20 @@
 
 .wrapper[data-theme="dark"] .pillboxBtnComment.pillboxBtnActive::after {
   border-top-color: #5eb8ff;
+}
+
+.wrapper[data-theme="dark"] .pillboxDot {
+  box-shadow: 0 0 0 2px #2d2d2d, 0 0 8px 2px rgba(229, 57, 53, 0.6);
+  animation-name: pillboxDotPulseDark;
+}
+
+@keyframes pillboxDotPulseDark {
+  0%, 100% {
+    box-shadow: 0 0 0 2px #2d2d2d, 0 0 8px 2px rgba(229, 57, 53, 0.6);
+  }
+  50% {
+    box-shadow: 0 0 0 2px #2d2d2d, 0 0 12px 4px rgba(229, 57, 53, 0.8);
+  }
 }
 
 .wrapper[data-theme="dark"] .clickMarker {

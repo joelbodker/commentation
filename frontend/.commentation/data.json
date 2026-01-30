@@ -4,15 +4,647 @@
       "http://localhost:5173/": {
         "threads": [
           {
-            "id": "ml0cvs9m-0sazfiqf1",
+            "id": "ml0ii2uq-wi8fp1yvz",
             "projectId": "walkwise-web",
             "pageUrl": "http://localhost:5173/",
-            "selector": "body",
-            "xPercent": 50,
-            "yPercent": 50,
+            "selector": "div:nth-of-type(1) > div:nth-of-type(3) > p",
+            "xPercent": 60.79952267303103,
+            "yPercent": 63.51774530271399,
+            "status": "RESOLVED",
+            "createdBy": "Joel Bodker",
+            "createdAt": "2026-01-30T06:38:35.762Z",
+            "resolvedBy": "Joel Bodker",
+            "resolvedAt": "2026-01-30T06:57:18.798Z",
+            "assignedTo": "Joel Bodker",
+            "assignedBy": "Joel Bodker",
+            "assignedAt": "2026-01-30T06:42:11.341Z",
+            "comments": [
+              {
+                "id": "ml0ii2uq-apxe7455f",
+                "threadId": "ml0ii2uq-wi8fp1yvz",
+                "body": "test",
+                "createdBy": "Joel Bodker",
+                "createdAt": "2026-01-30T06:38:35.762Z"
+              },
+              {
+                "id": "ml0in9jk-rrxgwx1ix",
+                "threadId": "ml0ii2uq-wi8fp1yvz",
+                "body": "needs to be a little bit brighterneeds to be a little bit brighterneeds to be a little bit brighterneeds to be a little bit brighterneeds to be a little bit brighterneeds to be a little bit brighter",
+                "createdBy": "Joel Bodker",
+                "createdAt": "2026-01-30T06:42:37.712Z"
+              }
+            ]
+          },
+          {
+            "id": "ml0imgks-v70s8ucmf",
+            "projectId": "walkwise-web",
+            "pageUrl": "http://localhost:5173/",
+            "selector": "div:nth-of-type(1) > div:nth-of-type(3) > p",
+            "xPercent": 53.28162291169451,
+            "yPercent": 62.47390396659708,
+            "status": "RESOLVED",
+            "createdBy": "Joel Bodker",
+            "createdAt": "2026-01-30T06:42:00.172Z",
+            "resolvedBy": "Joel Bodker",
+            "resolvedAt": "2026-01-30T06:57:23.281Z",
+            "assignedTo": null,
+            "assignedBy": null,
+            "assignedAt": null,
+            "comments": [
+              {
+                "id": "ml0imgks-evd8k0olh",
+                "threadId": "ml0imgks-v70s8ucmf",
+                "body": "m",
+                "createdBy": "Joel Bodker",
+                "createdAt": "2026-01-30T06:42:00.172Z"
+              }
+            ]
+          },
+          {
+            "id": "ml0j39ep-vge3c7ray",
+            "projectId": "walkwise-web",
+            "pageUrl": "http://localhost:5173/",
+            "selector": "div:nth-of-type(1) > ul > li:nth-of-type(1)",
+            "xPercent": 64.37947494033412,
+            "yPercent": 76.51356993736952,
+            "status": "RESOLVED",
+            "createdBy": "Joel Bodker",
+            "createdAt": "2026-01-30T06:55:04.033Z",
+            "resolvedBy": "Joel Bodker",
+            "resolvedAt": "2026-01-30T06:57:21.185Z",
+            "assignedTo": null,
+            "assignedBy": null,
+            "assignedAt": null,
+            "comments": [
+              {
+                "id": "ml0j39ep-t88i1tl7a",
+                "threadId": "ml0j39ep-vge3c7ray",
+                "body": "get er done",
+                "createdBy": "Joel Bodker",
+                "createdAt": "2026-01-30T06:55:04.033Z"
+              }
+            ]
+          },
+          {
+            "id": "ml0j83v5-h8g8tby7v",
+            "projectId": "walkwise-web",
+            "pageUrl": "http://localhost:5173/",
+            "selector": "div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(3)",
+            "xPercent": 67.60143198090692,
+            "yPercent": 46.86847599164927,
+            "status": "RESOLVED",
+            "createdBy": "Joel Bodker",
+            "createdAt": "2026-01-30T06:58:50.129Z",
+            "resolvedBy": "Joel Bodker",
+            "resolvedAt": "2026-01-30T07:03:52.661Z",
+            "assignedTo": null,
+            "assignedBy": null,
+            "assignedAt": null,
+            "comments": [
+              {
+                "id": "ml0j83v5-3w1kn4rz0",
+                "threadId": "ml0j83v5-h8g8tby7v",
+                "body": "tes",
+                "createdBy": "Joel Bodker",
+                "createdAt": "2026-01-30T06:58:50.129Z"
+              }
+            ]
+          },
+          {
+            "id": "ml0j8aiw-p9g34mvhz",
+            "projectId": "walkwise-web",
+            "pageUrl": "http://localhost:5173/",
+            "selector": "div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2)",
+            "xPercent": 57.15990453460621,
+            "yPercent": 46.34655532359081,
+            "status": "RESOLVED",
+            "createdBy": "Joel Bodker",
+            "createdAt": "2026-01-30T06:58:58.760Z",
+            "resolvedBy": "Joel Bodker",
+            "resolvedAt": "2026-01-30T07:03:51.126Z",
+            "assignedTo": null,
+            "assignedBy": null,
+            "assignedAt": null,
+            "comments": [
+              {
+                "id": "ml0j8aiw-m3exx78gl",
+                "threadId": "ml0j8aiw-p9g34mvhz",
+                "body": "test",
+                "createdBy": "Joel Bodker",
+                "createdAt": "2026-01-30T06:58:58.760Z"
+              }
+            ]
+          },
+          {
+            "id": "ml0jeosy-c2ovp30hk",
+            "projectId": "walkwise-web",
+            "pageUrl": "http://localhost:5173/",
+            "selector": "div:nth-of-type(1) > div:nth-of-type(2)",
+            "xPercent": 70.16706443914082,
+            "yPercent": 47.59916492693111,
+            "status": "RESOLVED",
+            "createdBy": "Joel Bodker",
+            "createdAt": "2026-01-30T07:03:57.202Z",
+            "resolvedBy": "Joel Bodker",
+            "resolvedAt": "2026-01-30T07:10:27.864Z",
+            "assignedTo": null,
+            "assignedBy": null,
+            "assignedAt": null,
+            "comments": [
+              {
+                "id": "ml0jeosy-f05r3dl8k",
+                "threadId": "ml0jeosy-c2ovp30hk",
+                "body": "test",
+                "createdBy": "Joel Bodker",
+                "createdAt": "2026-01-30T07:03:57.202Z"
+              }
+            ]
+          },
+          {
+            "id": "ml0jetm4-vgkxwhnil",
+            "projectId": "walkwise-web",
+            "pageUrl": "http://localhost:5173/",
+            "selector": "div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > p",
+            "xPercent": 60.859188544152744,
+            "yPercent": 63.88308977035491,
+            "status": "RESOLVED",
+            "createdBy": "Joel Bodker",
+            "createdAt": "2026-01-30T07:04:03.436Z",
+            "resolvedBy": "Joel Bodker",
+            "resolvedAt": "2026-01-30T07:10:29.516Z",
+            "assignedTo": null,
+            "assignedBy": null,
+            "assignedAt": null,
+            "comments": [
+              {
+                "id": "ml0jetm4-31h2qwdtd",
+                "threadId": "ml0jetm4-vgkxwhnil",
+                "body": "test",
+                "createdBy": "Joel Bodker",
+                "createdAt": "2026-01-30T07:04:03.436Z"
+              }
+            ]
+          },
+          {
+            "id": "ml0jex17-mp4pb1qcm",
+            "projectId": "walkwise-web",
+            "pageUrl": "http://localhost:5173/",
+            "selector": "div:nth-of-type(1) > ul > li:nth-of-type(2)",
+            "xPercent": 57.93556085918854,
+            "yPercent": 81.94154488517745,
+            "status": "RESOLVED",
+            "createdBy": "Joel Bodker",
+            "createdAt": "2026-01-30T07:04:07.867Z",
+            "resolvedBy": "Joel Bodker",
+            "resolvedAt": "2026-01-30T07:10:31.633Z",
+            "assignedTo": null,
+            "assignedBy": null,
+            "assignedAt": null,
+            "comments": [
+              {
+                "id": "ml0jex17-k724lxqqh",
+                "threadId": "ml0jex17-mp4pb1qcm",
+                "body": "test",
+                "createdBy": "Joel Bodker",
+                "createdAt": "2026-01-30T07:04:07.867Z"
+              }
+            ]
+          },
+          {
+            "id": "ml0jf08z-678yxjsr8",
+            "projectId": "walkwise-web",
+            "pageUrl": "http://localhost:5173/",
+            "selector": "",
+            "xPercent": 15.871121718377088,
+            "yPercent": 71.29436325678496,
+            "status": "RESOLVED",
+            "createdBy": "Joel Bodker",
+            "createdAt": "2026-01-30T07:04:12.035Z",
+            "resolvedBy": "Joel Bodker",
+            "resolvedAt": "2026-01-30T07:10:34.516Z",
+            "assignedTo": null,
+            "assignedBy": null,
+            "assignedAt": null,
+            "comments": [
+              {
+                "id": "ml0jf08z-yb6zkx82o",
+                "threadId": "ml0jf08z-678yxjsr8",
+                "body": "test",
+                "createdBy": "Joel Bodker",
+                "createdAt": "2026-01-30T07:04:12.035Z"
+              }
+            ]
+          },
+          {
+            "id": "ml0jf2sv-oiubrit5b",
+            "projectId": "walkwise-web",
+            "pageUrl": "http://localhost:5173/",
+            "selector": "",
+            "xPercent": 12.231503579952268,
+            "yPercent": 41.23173277661795,
+            "status": "RESOLVED",
+            "createdBy": "Joel Bodker",
+            "createdAt": "2026-01-30T07:04:15.343Z",
+            "resolvedBy": "Joel Bodker",
+            "resolvedAt": "2026-01-30T07:10:35.990Z",
+            "assignedTo": null,
+            "assignedBy": null,
+            "assignedAt": null,
+            "comments": [
+              {
+                "id": "ml0jf2sv-duhb3d3qm",
+                "threadId": "ml0jf2sv-oiubrit5b",
+                "body": "test",
+                "createdBy": "Joel Bodker",
+                "createdAt": "2026-01-30T07:04:15.343Z"
+              }
+            ]
+          },
+          {
+            "id": "ml0jf5n4-xoak9rol0",
+            "projectId": "walkwise-web",
+            "pageUrl": "http://localhost:5173/",
+            "selector": "",
+            "xPercent": 20.346062052505967,
+            "yPercent": 64.61377870563675,
+            "status": "RESOLVED",
+            "createdBy": "Joel Bodker",
+            "createdAt": "2026-01-30T07:04:19.024Z",
+            "resolvedBy": "Joel Bodker",
+            "resolvedAt": "2026-01-30T07:10:32.877Z",
+            "assignedTo": null,
+            "assignedBy": null,
+            "assignedAt": null,
+            "comments": [
+              {
+                "id": "ml0jf5n4-qn102qksb",
+                "threadId": "ml0jf5n4-xoak9rol0",
+                "body": "test",
+                "createdBy": "Joel Bodker",
+                "createdAt": "2026-01-30T07:04:19.024Z"
+              }
+            ]
+          },
+          {
+            "id": "ml0jncl7-zed1pcuid",
+            "projectId": "walkwise-web",
+            "pageUrl": "http://localhost:5173/",
+            "selector": "div:nth-of-type(1)",
+            "xPercent": 59.665871121718375,
+            "yPercent": 76.40918580375782,
+            "status": "RESOLVED",
+            "createdBy": "Joel Bodker",
+            "createdAt": "2026-01-30T07:10:41.275Z",
+            "resolvedBy": "Joel Bodker",
+            "resolvedAt": "2026-01-30T07:11:11.937Z",
+            "assignedTo": null,
+            "assignedBy": null,
+            "assignedAt": null,
+            "comments": [
+              {
+                "id": "ml0jncl7-amjaknzw4",
+                "threadId": "ml0jncl7-zed1pcuid",
+                "body": "test",
+                "createdBy": "Joel Bodker",
+                "createdAt": "2026-01-30T07:10:41.275Z"
+              }
+            ]
+          },
+          {
+            "id": "ml0jnfa7-d8buneh08",
+            "projectId": "walkwise-web",
+            "pageUrl": "http://localhost:5173/",
+            "selector": "div:nth-of-type(1) > p:nth-of-type(3)",
+            "xPercent": 63.72315035799523,
+            "yPercent": 37.578288100208766,
+            "status": "RESOLVED",
+            "createdBy": "Joel Bodker",
+            "createdAt": "2026-01-30T07:10:44.767Z",
+            "resolvedBy": "Joel Bodker",
+            "resolvedAt": "2026-01-30T07:11:14.510Z",
+            "assignedTo": null,
+            "assignedBy": null,
+            "assignedAt": null,
+            "comments": [
+              {
+                "id": "ml0jnfa7-uak7nneg8",
+                "threadId": "ml0jnfa7-d8buneh08",
+                "body": "test",
+                "createdBy": "Joel Bodker",
+                "createdAt": "2026-01-30T07:10:44.767Z"
+              }
+            ]
+          },
+          {
+            "id": "ml0jnyk4-s9gzpvpn1",
+            "projectId": "walkwise-web",
+            "pageUrl": "http://localhost:5173/",
+            "selector": "div:nth-of-type(1) > ul > li:nth-of-type(3)",
+            "xPercent": 62.94749403341289,
+            "yPercent": 83.7160751565762,
+            "status": "RESOLVED",
+            "createdBy": "Joel Bodker",
+            "createdAt": "2026-01-30T07:11:09.748Z",
+            "resolvedBy": "Joel Bodker",
+            "resolvedAt": "2026-01-30T07:11:13.167Z",
+            "assignedTo": null,
+            "assignedBy": null,
+            "assignedAt": null,
+            "comments": [
+              {
+                "id": "ml0jnyk4-cbzcu5kyl",
+                "threadId": "ml0jnyk4-s9gzpvpn1",
+                "body": "rest",
+                "createdBy": "Joel Bodker",
+                "createdAt": "2026-01-30T07:11:09.748Z"
+              }
+            ]
+          },
+          {
+            "id": "ml0jsvlc-x9y761smz",
+            "projectId": "walkwise-web",
+            "pageUrl": "http://localhost:5173/",
+            "selector": "div:nth-of-type(1)",
+            "xPercent": 65.09546539379475,
+            "yPercent": 72.86012526096033,
+            "status": "RESOLVED",
+            "createdBy": "Joel Bodker",
+            "createdAt": "2026-01-30T07:14:59.184Z",
+            "resolvedBy": "Joel Bodker",
+            "resolvedAt": "2026-01-30T07:15:10.330Z",
+            "assignedTo": null,
+            "assignedBy": null,
+            "assignedAt": null,
+            "comments": [
+              {
+                "id": "ml0jsvlc-hzveyu5bs",
+                "threadId": "ml0jsvlc-x9y761smz",
+                "body": "test",
+                "createdBy": "Joel Bodker",
+                "createdAt": "2026-01-30T07:14:59.184Z"
+              }
+            ]
+          },
+          {
+            "id": "ml0jt199-8xk662vuh",
+            "projectId": "walkwise-web",
+            "pageUrl": "http://localhost:5173/",
+            "selector": "div:nth-of-type(1) > p:nth-of-type(5)",
+            "xPercent": 48.747016706443915,
+            "yPercent": 32.045929018789145,
+            "status": "RESOLVED",
+            "createdBy": "Joel Bodker",
+            "createdAt": "2026-01-30T07:15:06.525Z",
+            "resolvedBy": "Joel Bodker",
+            "resolvedAt": "2026-01-30T07:15:11.872Z",
+            "assignedTo": null,
+            "assignedBy": null,
+            "assignedAt": null,
+            "comments": [
+              {
+                "id": "ml0jt199-vkc4c9geg",
+                "threadId": "ml0jt199-8xk662vuh",
+                "body": "test",
+                "createdBy": "Joel Bodker",
+                "createdAt": "2026-01-30T07:15:06.525Z"
+              }
+            ]
+          },
+          {
+            "id": "ml0jtcrv-oc50d7yuy",
+            "projectId": "walkwise-web",
+            "pageUrl": "http://localhost:5173/",
+            "selector": "div:nth-of-type(1)",
+            "xPercent": 59.12887828162291,
+            "yPercent": 52.087682672233825,
+            "status": "RESOLVED",
+            "createdBy": "Joel Bodker",
+            "createdAt": "2026-01-30T07:15:21.451Z",
+            "resolvedBy": "Joel Bodker",
+            "resolvedAt": "2026-01-30T07:15:35.086Z",
+            "assignedTo": null,
+            "assignedBy": null,
+            "assignedAt": null,
+            "comments": [
+              {
+                "id": "ml0jtcrv-2pzj3fgrk",
+                "threadId": "ml0jtcrv-oc50d7yuy",
+                "body": "test",
+                "createdBy": "Joel Bodker",
+                "createdAt": "2026-01-30T07:15:21.451Z"
+              }
+            ]
+          },
+          {
+            "id": "ml0jtf7w-0tk90y189",
+            "projectId": "walkwise-web",
+            "pageUrl": "http://localhost:5173/",
+            "selector": "div:nth-of-type(1) > ul > li:nth-of-type(3)",
+            "xPercent": 61.93317422434368,
+            "yPercent": 82.35908141962422,
+            "status": "RESOLVED",
+            "createdBy": "Joel Bodker",
+            "createdAt": "2026-01-30T07:15:24.620Z",
+            "resolvedBy": "Joel Bodker",
+            "resolvedAt": "2026-01-30T07:15:36.408Z",
+            "assignedTo": null,
+            "assignedBy": null,
+            "assignedAt": null,
+            "comments": [
+              {
+                "id": "ml0jtf7w-p9ije55it",
+                "threadId": "ml0jtf7w-0tk90y189",
+                "body": "test",
+                "createdBy": "Joel Bodker",
+                "createdAt": "2026-01-30T07:15:24.620Z"
+              }
+            ]
+          },
+          {
+            "id": "ml0jtkdl-inalhmrtx",
+            "projectId": "walkwise-web",
+            "pageUrl": "http://localhost:5173/",
+            "selector": "div:nth-of-type(1) > ul > li:nth-of-type(1)",
+            "xPercent": 25.596658711217184,
+            "yPercent": 75.36534446764091,
+            "status": "RESOLVED",
+            "createdBy": "Joel Bodker",
+            "createdAt": "2026-01-30T07:15:31.305Z",
+            "resolvedBy": "Joel Bodker",
+            "resolvedAt": "2026-01-30T07:15:37.982Z",
+            "assignedTo": null,
+            "assignedBy": null,
+            "assignedAt": null,
+            "comments": [
+              {
+                "id": "ml0jtkdl-ventauuig",
+                "threadId": "ml0jtkdl-inalhmrtx",
+                "body": "test",
+                "createdBy": "Joel Bodker",
+                "createdAt": "2026-01-30T07:15:31.305Z"
+              }
+            ]
+          },
+          {
+            "id": "ml0jyjb5-oe975w9ii",
+            "projectId": "walkwise-web",
+            "pageUrl": "http://localhost:5173/",
+            "selector": "div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3)",
+            "xPercent": 59.7255369928401,
+            "yPercent": 61.5866388308977,
+            "status": "RESOLVED",
+            "createdBy": "Joel Bodker",
+            "createdAt": "2026-01-30T07:19:23.201Z",
+            "resolvedBy": "Joel Bodker",
+            "resolvedAt": "2026-01-30T07:19:34.744Z",
+            "assignedTo": null,
+            "assignedBy": null,
+            "assignedAt": null,
+            "comments": [
+              {
+                "id": "ml0jyjb5-44yd0n87i",
+                "threadId": "ml0jyjb5-oe975w9ii",
+                "body": "test",
+                "createdBy": "Joel Bodker",
+                "createdAt": "2026-01-30T07:19:23.201Z"
+              }
+            ]
+          },
+          {
+            "id": "ml0jym5d-wi4g9rdci",
+            "projectId": "walkwise-web",
+            "pageUrl": "http://localhost:5173/",
+            "selector": "div:nth-of-type(1) > ul > li:nth-of-type(3)",
+            "xPercent": 61.217183770883054,
+            "yPercent": 84.96868475991648,
+            "status": "RESOLVED",
+            "createdBy": "Joel Bodker",
+            "createdAt": "2026-01-30T07:19:26.881Z",
+            "resolvedBy": "Joel Bodker",
+            "resolvedAt": "2026-01-30T07:19:36.150Z",
+            "assignedTo": null,
+            "assignedBy": null,
+            "assignedAt": null,
+            "comments": [
+              {
+                "id": "ml0jym5d-jwr9sqvh1",
+                "threadId": "ml0jym5d-wi4g9rdci",
+                "body": "test",
+                "createdBy": "Joel Bodker",
+                "createdAt": "2026-01-30T07:19:26.881Z"
+              }
+            ]
+          },
+          {
+            "id": "ml0jyplp-06082abz1",
+            "projectId": "walkwise-web",
+            "pageUrl": "http://localhost:5173/",
+            "selector": "div:nth-of-type(1) > ul > li:nth-of-type(3)",
+            "xPercent": 47.43436754176611,
+            "yPercent": 83.92484342379957,
+            "status": "RESOLVED",
+            "createdBy": "Joel Bodker",
+            "createdAt": "2026-01-30T07:19:31.357Z",
+            "resolvedBy": "Joel Bodker",
+            "resolvedAt": "2026-01-30T07:19:37.417Z",
+            "assignedTo": null,
+            "assignedBy": null,
+            "assignedAt": null,
+            "comments": [
+              {
+                "id": "ml0jyplp-o8vlxpdmm",
+                "threadId": "ml0jyplp-06082abz1",
+                "body": "test",
+                "createdBy": "Joel Bodker",
+                "createdAt": "2026-01-30T07:19:31.357Z"
+              }
+            ]
+          },
+          {
+            "id": "ml0k2acz-giug9t4nq",
+            "projectId": "walkwise-web",
+            "pageUrl": "http://localhost:5173/",
+            "selector": "div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2)",
+            "xPercent": 52.14797136038186,
+            "yPercent": 53.65344467640919,
+            "status": "RESOLVED",
+            "createdBy": "Joel Bodker",
+            "createdAt": "2026-01-30T07:22:18.227Z",
+            "resolvedBy": "Joel Bodker",
+            "resolvedAt": "2026-01-30T07:22:54.739Z",
+            "assignedTo": null,
+            "assignedBy": null,
+            "assignedAt": null,
+            "comments": [
+              {
+                "id": "ml0k2acz-8h8lk06mp",
+                "threadId": "ml0k2acz-giug9t4nq",
+                "body": "test",
+                "createdBy": "Joel Bodker",
+                "createdAt": "2026-01-30T07:22:18.227Z"
+              }
+            ]
+          },
+          {
+            "id": "ml0k2dvv-6pcovdwoq",
+            "projectId": "walkwise-web",
+            "pageUrl": "http://localhost:5173/",
+            "selector": "div:nth-of-type(1) > ul > li:nth-of-type(2)",
+            "xPercent": 55.011933174224346,
+            "yPercent": 80.27139874739039,
+            "status": "RESOLVED",
+            "createdBy": "Joel Bodker",
+            "createdAt": "2026-01-30T07:22:22.795Z",
+            "resolvedBy": "Joel Bodker",
+            "resolvedAt": "2026-01-30T07:22:56.661Z",
+            "assignedTo": null,
+            "assignedBy": null,
+            "assignedAt": null,
+            "comments": [
+              {
+                "id": "ml0k2dvv-tyb8r6tp2",
+                "threadId": "ml0k2dvv-6pcovdwoq",
+                "body": "test",
+                "createdBy": "Joel Bodker",
+                "createdAt": "2026-01-30T07:22:22.795Z"
+              }
+            ]
+          },
+          {
+            "id": "ml0k8bnu-2enkncxi4",
+            "projectId": "walkwise-web",
+            "pageUrl": "http://localhost:5173/",
+            "selector": "div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2)",
+            "xPercent": 50.149031296572275,
+            "yPercent": 44.46764091858037,
+            "status": "RESOLVED",
+            "createdBy": "Joel Bodker",
+            "createdAt": "2026-01-30T07:26:59.850Z",
+            "resolvedBy": "Joel Bodker",
+            "resolvedAt": "2026-01-30T07:28:15.356Z",
+            "assignedTo": null,
+            "assignedBy": null,
+            "assignedAt": null,
+            "comments": [
+              {
+                "id": "ml0k8bnu-etlqbgm4a",
+                "threadId": "ml0k8bnu-2enkncxi4",
+                "body": "test",
+                "createdBy": "Joel Bodker",
+                "createdAt": "2026-01-30T07:26:59.850Z"
+              }
+            ]
+          },
+          {
+            "id": "ml0ka6tq-fvqsxwrte",
+            "projectId": "walkwise-web",
+            "pageUrl": "http://localhost:5173/",
+            "selector": "div:nth-of-type(1)",
+            "xPercent": 63.47222222222222,
+            "yPercent": 28.18371607515658,
             "status": "OPEN",
-            "createdBy": "Dev",
-            "createdAt": "2026-01-30T04:01:17.530Z",
+            "createdBy": "Joel Bodker",
+            "createdAt": "2026-01-30T07:28:26.894Z",
             "resolvedBy": null,
             "resolvedAt": null,
             "assignedTo": null,
@@ -20,18 +652,47 @@
             "assignedAt": null,
             "comments": [
               {
-                "id": "ml0cvs9m-wylzbhdsn",
-                "threadId": "ml0cvs9m-0sazfiqf1",
-                "body": "Test comment",
-                "createdBy": "Dev",
-                "createdAt": "2026-01-30T04:01:17.530Z"
+                "id": "ml0ka6tq-pvtxes3fy",
+                "threadId": "ml0ka6tq-fvqsxwrte",
+                "body": "test",
+                "createdBy": "Joel Bodker",
+                "createdAt": "2026-01-30T07:28:26.894Z"
               }
             ]
           }
         ],
         "order": [
-          "ml0cvs9m-0sazfiqf1"
+          "ml0ii2uq-wi8fp1yvz",
+          "ml0imgks-v70s8ucmf",
+          "ml0j39ep-vge3c7ray",
+          "ml0j83v5-h8g8tby7v",
+          "ml0j8aiw-p9g34mvhz",
+          "ml0jeosy-c2ovp30hk",
+          "ml0jetm4-vgkxwhnil",
+          "ml0jex17-mp4pb1qcm",
+          "ml0jf08z-678yxjsr8",
+          "ml0jf2sv-oiubrit5b",
+          "ml0jf5n4-xoak9rol0",
+          "ml0jncl7-zed1pcuid",
+          "ml0jnfa7-d8buneh08",
+          "ml0jnyk4-s9gzpvpn1",
+          "ml0jsvlc-x9y761smz",
+          "ml0jt199-8xk662vuh",
+          "ml0jtcrv-oc50d7yuy",
+          "ml0jtf7w-0tk90y189",
+          "ml0jtkdl-inalhmrtx",
+          "ml0jyjb5-oe975w9ii",
+          "ml0jym5d-wi4g9rdci",
+          "ml0jyplp-06082abz1",
+          "ml0k2acz-giug9t4nq",
+          "ml0k2dvv-6pcovdwoq",
+          "ml0k8bnu-2enkncxi4",
+          "ml0ka6tq-fvqsxwrte"
         ]
+      },
+      "http://localhost:5175/": {
+        "threads": [],
+        "order": []
       }
     }
   }

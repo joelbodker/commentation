@@ -1,7 +1,7 @@
 /**
  * Right-hand sidebar: thread list (pin #, snippet, status, date), thread detail with comments + reply + resolve.
  */
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Thread, ThreadListItem } from "./store";
 import styles from "./Sidebar.module.css";
 
@@ -118,12 +118,84 @@ function formatDuration(createdAt: string, resolvedAt: string): string {
   return "<1m";
 }
 
+function pagePathFromUrl(url: string): string {
+  try {
+    const u = new URL(url);
+    const path = u.pathname || "/";
+    return path === "" ? "/" : path;
+  } catch {
+    return url;
+  }
+}
+
+const INBOX_SEEN_KEY = "commentation-inbox-seen";
+
+function getInboxSeenKey(projectId: string, createdBy: string): string {
+  return `${INBOX_SEEN_KEY}-${String(projectId ?? "")}-${encodeURIComponent(String(createdBy ?? ""))}`;
+}
+
+function getLastSeenAt(projectId: string, createdBy: string, threadId: string): number | null {
+  try {
+    const key = getInboxSeenKey(projectId, createdBy);
+    const raw = localStorage.getItem(key);
+    if (!raw) return null;
+    const data = JSON.parse(raw) as Record<string, number>;
+    return data[threadId] ?? null;
+  } catch {
+    return null;
+  }
+}
+
+function markThreadAsSeen(projectId: string, createdBy: string, threadId: string): void {
+  try {
+    const key = getInboxSeenKey(projectId, createdBy);
+    const raw = localStorage.getItem(key);
+    const data = (raw ? JSON.parse(raw) : {}) as Record<string, number>;
+    data[threadId] = Date.now();
+    localStorage.setItem(key, JSON.stringify(data));
+  } catch {
+    /* ignore */
+  }
+}
+
+function computeInboxItems(
+  threads: ThreadListItem[],
+  createdBy: string,
+  projectId: string
+): { thread: ThreadListItem; unread: boolean }[] {
+  try {
+    const me = (createdBy ?? "").trim() || "Anonymous";
+    const items: { thread: ThreadListItem; unread: boolean }[] = [];
+    for (const t of threads ?? []) {
+      const comments = t.comments ?? [];
+      if (comments.length === 0) continue;
+      const latestComment = comments[comments.length - 1];
+      if (!latestComment || (latestComment.createdBy ?? "") === me) continue;
+      const iParticipated =
+        (t.createdBy ?? "") === me || comments.some((c) => (c.createdBy ?? "") === me);
+      if (!iParticipated) continue;
+      const lastSeen = getLastSeenAt(projectId, createdBy ?? "", t.id);
+      const latestTime = new Date(latestComment.createdAt ?? 0).getTime();
+      const unread = lastSeen == null || lastSeen < latestTime;
+      items.push({ thread: t, unread });
+    }
+    return items.sort((a, b) => {
+      const aComments = a.thread.comments ?? [];
+      const bComments = b.thread.comments ?? [];
+      const aTime = aComments.length ? new Date(aComments[aComments.length - 1]?.createdAt ?? 0).getTime() : 0;
+      const bTime = bComments.length ? new Date(bComments[bComments.length - 1]?.createdAt ?? 0).getTime() : 0;
+      return bTime - aTime;
+    });
+  } catch {
+    return [];
+  }
+}
+
 function ThreadDetail({
   threadId,
   thread,
   threadIndex,
   createdBy,
-  onCreatedByChange,
   onRefresh,
   onBack,
   onResolved,
@@ -131,32 +203,80 @@ function ThreadDetail({
   onUpdateThreadStatus,
   onAssignThread,
   addLog,
+  knownNames = [],
 }: {
   threadId: string;
   thread: Thread | null;
   threadIndex: number;
   createdBy: string;
-  onCreatedByChange: (v: string) => void;
   onRefresh: () => void;
   onBack: () => void;
   onResolved?: () => void;
-  onAddComment: (threadId: string, body: string, createdBy: string) => void | Promise<void>;
-  onUpdateThreadStatus: (threadId: string, status: "OPEN" | "RESOLVED", resolvedBy?: string) => void | Promise<void>;
-  onAssignThread: (threadId: string, assignedTo: string, assignedBy: string) => void | Promise<void>;
+  onAddComment: (threadId: string, pageUrl: string, body: string, createdBy: string) => void | Promise<void>;
+  onUpdateThreadStatus: (threadId: string, pageUrl: string, status: "OPEN" | "RESOLVED", resolvedBy?: string) => void | Promise<void>;
+  onAssignThread: (threadId: string, pageUrl: string, assignedTo: string, assignedBy: string) => void | Promise<void>;
   addLog?: (msg: string) => void;
+  knownNames?: string[];
 }) {
   const [reply, setReply] = useState("");
   const [posting, setPosting] = useState(false);
   const [resolving, setResolving] = useState(false);
   const [assigning, setAssigning] = useState(false);
+  const [assignTo, setAssignTo] = useState("");
+  const [assignToCustom, setAssignToCustom] = useState("");
+  const [mention, setMention] = useState<{ query: string; start: number; end: number } | null>(null);
+  const [mentionHighlight, setMentionHighlight] = useState(0);
+  const replyTextareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    setAssignTo("");
+    setAssignToCustom("");
+  }, [threadId]);
+
+  const mentionCandidates = useMemo(() => {
+    if (!mention) return [];
+    const q = mention.query.toLowerCase();
+    return knownNames.filter((n) => n.toLowerCase().startsWith(q));
+  }, [mention, knownNames]);
+
+  const updateMentionState = useCallback((text: string, cursor: number) => {
+    const before = text.slice(0, cursor);
+    const atIdx = before.lastIndexOf("@");
+    if (atIdx === -1) {
+      setMention(null);
+      return;
+    }
+    const afterAt = before.slice(atIdx + 1);
+    if (/[\s\n]/.test(afterAt)) {
+      setMention(null);
+      return;
+    }
+    setMention({ query: afterAt, start: atIdx, end: cursor });
+    setMentionHighlight(0);
+  }, []);
+
+  const insertMention = useCallback((name: string) => {
+    if (!mention || !replyTextareaRef.current) return;
+    const before = reply.slice(0, mention.start);
+    const after = reply.slice(mention.end);
+    const newReply = before + "@" + name + " " + after;
+    setReply(newReply);
+    setMention(null);
+    requestAnimationFrame(() => {
+      const pos = mention.start + name.length + 2;
+      replyTextareaRef.current?.setSelectionRange(pos, pos);
+      replyTextareaRef.current?.focus();
+    });
+  }, [mention, reply]);
 
   const performReply = async () => {
     const b = reply.trim();
     const name = createdBy.trim() || "Anonymous";
-    if (!b || posting) return;
+    if (!b || posting || !thread) return;
     setPosting(true);
+    setMention(null);
     try {
-      await onAddComment(threadId, b, name);
+      await onAddComment(threadId, thread.pageUrl, b, name);
       addLog?.(`Reply on task #${threadIndex} by ${name}`);
       setReply("");
       onRefresh();
@@ -171,11 +291,38 @@ function ThreadDetail({
   };
 
   const handleReplyKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    // Enter submits, Shift+Enter creates new line
+    if (mention && mentionCandidates.length > 0) {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setMentionHighlight((h) => Math.min(h + 1, mentionCandidates.length - 1));
+        return;
+      }
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setMentionHighlight((h) => Math.max(h - 1, 0));
+        return;
+      }
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        insertMention(mentionCandidates[mentionHighlight]);
+        return;
+      }
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setMention(null);
+        return;
+      }
+    }
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       performReply();
     }
+  };
+
+  const handleReplyChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const v = e.target.value;
+    setReply(v);
+    updateMentionState(v, e.target.selectionStart);
   };
 
   const handleToggleResolved = async () => {
@@ -184,7 +331,7 @@ function ThreadDetail({
     const name = createdBy.trim() || "Anonymous";
     setResolving(true);
     try {
-      await onUpdateThreadStatus(threadId, next, next === "RESOLVED" ? name : undefined);
+      await onUpdateThreadStatus(threadId, thread.pageUrl, next, next === "RESOLVED" ? name : undefined);
       if (next === "RESOLVED") {
         addLog?.(`Task #${threadIndex} resolved by ${name}`);
         onResolved?.();
@@ -197,13 +344,17 @@ function ThreadDetail({
     }
   };
 
-  const handleAssignToMe = async () => {
+  const handleAssign = async () => {
     if (!thread || assigning || thread.status !== "OPEN") return;
-    const name = createdBy.trim() || "Anonymous";
+    const assignedTo = assignTo === "__custom__" ? assignToCustom.trim() : assignTo.trim();
+    const assignedBy = createdBy.trim() || "Anonymous";
+    if (!assignedTo) return;
     setAssigning(true);
     try {
-      await onAssignThread(threadId, name, name);
-      addLog?.(`Task #${threadIndex} assigned to ${name} by ${name}`);
+      await onAssignThread(threadId, thread.pageUrl, assignedTo, assignedBy);
+      addLog?.(`Task #${threadIndex} assigned to ${assignedTo} by ${assignedBy}`);
+      setAssignTo("");
+      setAssignToCustom("");
       onRefresh();
     } finally {
       setAssigning(false);
@@ -222,63 +373,96 @@ function ThreadDetail({
   }
 
   const comments = thread.comments ?? [];
-  const isAssignedToMe = thread.assignedTo === (createdBy.trim() || "Anonymous");
+  const firstBody = comments[0]?.body ?? "";
+  const snippet = firstBody.slice(0, 80) + (firstBody.length > 80 ? "…" : "");
 
   return (
     <div className={styles.detail}>
-      <button type="button" className={styles.back} onClick={onBack}>
-        ← Back
-      </button>
+      <header className={styles.detailHeader}>
+        <button type="button" className={styles.back} onClick={onBack} aria-label="Back to list">
+          ←
+        </button>
+        <div className={styles.detailHeaderMain}>
+          <div className={styles.detailTitleRow}>
+            <span className={styles.detailPin}>#{threadIndex}</span>
+            <span className={thread.status === "OPEN" ? styles.badgeOpen : styles.badgeResolved}>
+              {thread.status}
+            </span>
+            <a href={thread.pageUrl} className={styles.detailPage} title="Go to page">
+              {pagePathFromUrl(thread.pageUrl)}
+            </a>
+          </div>
+          {snippet && <p className={styles.detailSnippet}>{snippet}</p>}
+        </div>
+      </header>
+
       <div className={styles.detailMeta}>
-        <span className={thread.status === "OPEN" ? styles.badgeOpen : styles.badgeResolved}>
-          {thread.status}
-        </span>
-        <span className={styles.detailCreator}>
-          Created by <strong>{thread.createdBy}</strong> · {formatDateTime(thread.createdAt)}
+        <span className={styles.detailMetaItem}>
+          {thread.createdBy} · {formatDateTime(thread.createdAt)}
         </span>
         {thread.assignedTo && (
-          <span className={styles.resolvedMeta}>
-            Assigned to {thread.assignedTo}
-            {thread.assignedBy && thread.assignedBy !== thread.assignedTo && ` by ${thread.assignedBy}`}
+          <span className={styles.detailMetaItem}>
+            → {thread.assignedTo}
           </span>
         )}
         {thread.resolvedBy && thread.resolvedAt && (
-          <span className={styles.resolvedMeta}>
-            Resolved by {thread.resolvedBy} · {formatDateTime(thread.resolvedAt)}
+          <span className={styles.detailMetaItem}>
+            ✓ {thread.resolvedBy} · {formatDateTime(thread.resolvedAt)}
           </span>
         )}
       </div>
+
       <div className={styles.commentsList}>
-        {comments.map((c, i) => (
-          <div
-            key={c.id}
-            className={`${styles.comment} ${styles.commentCard} ${i % 2 === 0 ? styles.commentPastelBlue : styles.commentPastelGreen}`}
-          >
-            <div className={styles.commentMeta}>
-              <strong>{c.createdBy}</strong> · {formatDateTime(c.createdAt)}
-            </div>
+        {comments.map((c) => (
+          <article key={c.id} className={styles.comment}>
+            <header className={styles.commentHeader}>
+              <span className={styles.commentAuthor}>{c.createdBy}</span>
+              <time className={styles.commentTime} dateTime={c.createdAt}>
+                {formatDateTime(c.createdAt)}
+              </time>
+            </header>
             <div className={styles.commentBody}>{c.body}</div>
-          </div>
+          </article>
         ))}
       </div>
       <form onSubmit={handleReply} className={styles.replyForm}>
-        <textarea
-          className={styles.replyInput}
-          value={reply}
-          onChange={(e) => setReply(e.target.value)}
-          onKeyDown={handleReplyKeyDown}
-          placeholder="Write a reply... (Enter to submit, Shift+Enter for new line)"
-          rows={2}
-          disabled={posting}
-        />
-        <div className={styles.replyRow}>
-          <input
-            type="text"
-            className={styles.createdByInput}
-            value={createdBy}
-            onChange={(e) => onCreatedByChange(e.target.value)}
-            placeholder="Your name"
+        <div className={styles.replyInputWrap}>
+          <textarea
+            ref={replyTextareaRef}
+            className={styles.replyInput}
+            value={reply}
+            onChange={handleReplyChange}
+            onKeyDown={handleReplyKeyDown}
+            onSelect={(e) => {
+              const ta = e.currentTarget;
+              updateMentionState(reply, ta.selectionStart);
+            }}
+            onBlur={() => setTimeout(() => setMention(null), 150)}
+            placeholder="Write a reply... Type @ to mention someone"
+            rows={2}
+            disabled={posting}
           />
+          {mention && mentionCandidates.length > 0 && (
+            <ul className={styles.mentionDropdown} role="listbox">
+              {mentionCandidates.map((name, i) => (
+                <li
+                  key={name}
+                  role="option"
+                  aria-selected={i === mentionHighlight}
+                  className={`${styles.mentionItem} ${i === mentionHighlight ? styles.mentionItemHighlight : ""}`}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    insertMention(name);
+                  }}
+                >
+                  @{name}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <div className={styles.replyRow}>
+          <span className={styles.replyAs}>Replying as {createdBy.trim() || "Anonymous"}</span>
           <button type="submit" className={styles.replyBtn} disabled={!reply.trim() || posting}>
             Reply
           </button>
@@ -286,15 +470,43 @@ function ThreadDetail({
       </form>
       <div className={styles.detailActions}>
         {thread.status === "OPEN" && (
-          <button
-            type="button"
-            className={styles.assignBtn}
-            onClick={handleAssignToMe}
-            disabled={assigning || isAssignedToMe}
-            title={isAssignedToMe ? "Already assigned to you" : "Put this task at the top of your to-do list"}
-          >
-            {isAssignedToMe ? "Assigned to you" : "Assign to me"}
-          </button>
+          <div className={styles.assignRow}>
+            <select
+              className={styles.assignSelect}
+              value={assignTo}
+              onChange={(e) => setAssignTo(e.target.value)}
+              disabled={assigning}
+              aria-label="Assign to"
+            >
+              <option value="">Assign…</option>
+              {knownNames.map((n) => (
+                <option key={n} value={n}>
+                  {n}
+                </option>
+              ))}
+              <option value="__custom__">+ Add</option>
+            </select>
+            {assignTo === "__custom__" && (
+              <input
+                type="text"
+                className={styles.assignCustomInput}
+                value={assignToCustom}
+                onChange={(e) => setAssignToCustom(e.target.value)}
+                placeholder="Name"
+                disabled={assigning}
+                aria-label="New assignee"
+              />
+            )}
+            <button
+              type="button"
+              className={styles.assignBtn}
+              onClick={handleAssign}
+              disabled={assigning || !(assignTo === "__custom__" ? assignToCustom.trim() : assignTo.trim())}
+              title="Assign"
+            >
+              Assign
+            </button>
+          </div>
         )}
         <button
           type="button"
@@ -327,6 +539,7 @@ export function Sidebar({
   onCreatedByChange,
   onPersistName,
   showNameRequiredPrompt = false,
+  knownNames = [],
   projectId,
   selectedThread,
   onAddComment,
@@ -336,10 +549,12 @@ export function Sidebar({
   addLog,
   onDeleteThread,
   onReorder,
+  showReorder = true,
   onEnterCommentMode,
   commentMode = false,
   theme = "light",
   onThemeChange,
+  onInboxUnreadChange,
 }: {
   open: boolean;
   onClose: () => void;
@@ -356,27 +571,31 @@ export function Sidebar({
   onCreatedByChange: (v: string) => void;
   onPersistName: (name: string) => void;
   showNameRequiredPrompt?: boolean;
+  knownNames?: string[];
   projectId: string;
   selectedThread: Thread | null;
-  onAddComment: (threadId: string, body: string, createdBy: string) => void | Promise<void>;
-  onUpdateThreadStatus: (threadId: string, status: "OPEN" | "RESOLVED", resolvedBy?: string) => void | Promise<void>;
-  onAssignThread: (threadId: string, assignedTo: string, assignedBy: string) => void | Promise<void>;
+  onAddComment: (threadId: string, pageUrl: string, body: string, createdBy: string) => void | Promise<void>;
+  onUpdateThreadStatus: (threadId: string, pageUrl: string, status: "OPEN" | "RESOLVED", resolvedBy?: string) => void | Promise<void>;
+  onAssignThread: (threadId: string, pageUrl: string, assignedTo: string, assignedBy: string) => void | Promise<void>;
   activityLog?: ActivityLogEntry[];
   addLog?: (msg: string) => void;
   onDeleteThread?: (threadId: string) => void;
   onReorder?: (threadIds: string[]) => void;
+  showReorder?: boolean;
   onEnterCommentMode?: () => void;
   commentMode?: boolean;
   theme?: "light" | "dark";
   onThemeChange?: (theme: "light" | "dark") => void;
+  onInboxUnreadChange?: (count: number) => void;
 }) {
-  const [view, setView] = useState<"comments" | "log" | "settings">("comments");
+  const [view, setView] = useState<"comments" | "inbox" | "log" | "settings">("comments");
   const [detailThreadId, setDetailThreadId] = useState<string | null>(null);
   const [nameEditing, setNameEditing] = useState(!createdBy);
-  const [confettiTrigger, setConfettiTrigger] = useState(false);
+  const [confettiKey, setConfettiKey] = useState(0);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [dropIndex, setDropIndex] = useState<number | null>(null);
   const [deletingThreadIds, setDeletingThreadIds] = useState<Set<string>>(new Set());
+  const [inboxSeenVersion, setInboxSeenVersion] = useState(0);
   const prevOpenRef = useRef(false);
 
   const handleDeleteClick = useCallback(
@@ -397,10 +616,10 @@ export function Sidebar({
   );
 
   useEffect(() => {
-    if (!confettiTrigger) return;
-    const t = setTimeout(() => setConfettiTrigger(false), 5500);
+    if (confettiKey === 0) return;
+    const t = setTimeout(() => setConfettiKey(0), 5500);
     return () => clearTimeout(t);
-  }, [confettiTrigger]);
+  }, [confettiKey]);
 
   useEffect(() => {
     if (selectedThreadId) setDetailThreadId(selectedThreadId);
@@ -418,6 +637,37 @@ export function Sidebar({
   const showDetail = detailThreadId != null;
   const showNameLocked = !nameEditing && !showNameRequiredPrompt;
 
+  const safeThreads = Array.isArray(threads) ? threads : [];
+  const inboxItems = useMemo(
+    () => computeInboxItems(safeThreads, createdBy ?? "", projectId ?? ""),
+    [safeThreads, createdBy, projectId, inboxSeenVersion]
+  );
+  const inboxUnreadCount = inboxItems.filter((x) => x.unread).length;
+
+  const handleOpenThread = useCallback(
+    (threadId: string) => {
+      onSelectThread(threadId);
+      setDetailThreadId(threadId);
+      setView("comments");
+      if (createdBy.trim()) {
+        markThreadAsSeen(projectId, createdBy, threadId);
+        setInboxSeenVersion((v) => v + 1);
+      }
+    },
+    [onSelectThread, createdBy, projectId]
+  );
+
+  useEffect(() => {
+    if (detailThreadId && createdBy.trim()) {
+      markThreadAsSeen(projectId, createdBy, detailThreadId);
+      setInboxSeenVersion((v) => v + 1);
+    }
+  }, [detailThreadId, createdBy, projectId]);
+
+  useEffect(() => {
+    onInboxUnreadChange?.(inboxUnreadCount);
+  }, [inboxUnreadCount, onInboxUnreadChange]);
+
   return (
     <aside
       className={`${styles.sidebar} ${open ? styles.sidebarOpen : ""}`}
@@ -429,6 +679,21 @@ export function Sidebar({
         <div className={styles.header}>
           <h2 className={styles.title}>Commentation</h2>
           <div className={styles.headerActions}>
+            <button
+              type="button"
+              className={`${styles.headerIconBtn} ${view === "inbox" ? styles.headerIconActive : ""} ${styles.headerIconInbox}`}
+              onClick={() => setView(view === "inbox" ? "comments" : "inbox")}
+              aria-label="Inbox"
+              title={inboxUnreadCount > 0 ? `${inboxUnreadCount} new reply${inboxUnreadCount === 1 ? "" : "ies"}` : "Replies to you"}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <polyline points="22 12 16 12 14 15 10 15 8 12 2 12" />
+                <path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z" />
+              </svg>
+              {inboxUnreadCount > 0 && (
+                <span className={styles.inboxDot} aria-hidden />
+              )}
+            </button>
             <button
               type="button"
               className={`${styles.headerIconBtn} ${view === "log" ? styles.headerIconActive : ""}`}
@@ -464,6 +729,42 @@ export function Sidebar({
             </button>
           </div>
         </div>
+
+        {view === "inbox" && (
+          <div className={styles.inboxView}>
+            <p className={styles.inboxViewTitle}>Replies to you</p>
+            {!createdBy.trim() ? (
+              <p className={styles.inboxEmpty}>Enter your name in Settings to see replies.</p>
+            ) : inboxItems.length === 0 ? (
+              <p className={styles.inboxEmpty}>No new replies.</p>
+            ) : (
+              <ul className={styles.inboxList}>
+                {inboxItems.map(({ thread, unread }) => {
+                  const comments = thread.comments ?? [];
+                  const latest = comments[comments.length - 1];
+                  return (
+                    <li key={thread.id} className={styles.inboxItem}>
+                      <button
+                        type="button"
+                        className={`${styles.inboxItemBtn} ${unread ? styles.inboxItemUnread : ""}`}
+                        onClick={() => handleOpenThread(thread.id)}
+                      >
+                        <span className={styles.inboxItemFrom}>{latest.createdBy}</span>
+                        <span className={styles.inboxItemSnippet}>
+                          {(latest.body ?? "").slice(0, 80)}
+                          {(latest.body ?? "").length > 80 ? "…" : ""}
+                        </span>
+                        <span className={styles.inboxItemMeta}>
+                          {pagePathFromUrl(thread.pageUrl)} · {formatDate(latest.createdAt)}
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+        )}
 
         {view === "log" && (
           <div className={styles.logView}>
@@ -509,14 +810,13 @@ export function Sidebar({
 
         {view === "comments" && (
           <>
-        {showNameRequiredPrompt && (
-          <div className={styles.nameRequiredBanner} role="alert">
-            Please enter your name before continuing.
-          </div>
-        )}
-
         {/* Your name: lock in with checkmark, persists to localStorage; Edit to change. */}
         <div className={styles.nameRow}>
+          {showNameRequiredPrompt && (
+            <div className={styles.nameRequiredTooltip} role="alert">
+              You must enter your name to create a comment.
+            </div>
+          )}
           {showNameLocked ? (
             <>
               <span className={styles.nameLabel}>Your name</span>
@@ -567,20 +867,20 @@ export function Sidebar({
           <ThreadDetail
             threadId={detailThreadId!}
             thread={selectedThread}
-            threadIndex={threads.find((t) => t.id === detailThreadId)?.index ?? 0}
+            threadIndex={safeThreads.find((t) => t.id === detailThreadId)?.index ?? 0}
             createdBy={createdBy}
-            onCreatedByChange={onCreatedByChange}
             onRefresh={onRefresh}
             onBack={() => setDetailThreadId(null)}
             onResolved={() => {
               setDetailThreadId(null);
               onStatusFilterChange("open");
-              setConfettiTrigger(true);
+              setConfettiKey((k) => k + 1);
             }}
             onAddComment={onAddComment}
             onUpdateThreadStatus={onUpdateThreadStatus}
             onAssignThread={onAssignThread}
             addLog={addLog}
+            knownNames={knownNames}
           />
         ) : (
           <>
@@ -621,7 +921,7 @@ export function Sidebar({
               <p className={styles.loading}>
                 {statusFilter === "open" ? "Loading tasks…" : "Loading resolved…"}
               </p>
-            ) : threads.length === 0 ? (
+            ) : safeThreads.length === 0 ? (
               <p className={styles.empty}>
                 {statusFilter === "open"
                   ? "No tasks yet. Turn on comment mode and click the page."
@@ -629,7 +929,7 @@ export function Sidebar({
               </p>
             ) : (
               <ul className={styles.list}>
-                {threads.map((t, i) => (
+                {safeThreads.map((t, i) => (
                   <li
                     key={t.id}
                     className={`${styles.listItem} ${dropIndex === i ? styles.listItemDropTarget : ""} ${dragIndex === i ? styles.listItemDragging : ""} ${deletingThreadIds.has(t.id) ? styles.listItemDeleting : ""}`}
@@ -642,7 +942,7 @@ export function Sidebar({
                     onDrop={(e) => {
                       e.preventDefault();
                       if (dragIndex == null || !onReorder) return;
-                      const ids = threads.map((x) => x.id);
+                      const ids = safeThreads.map((x) => x.id);
                       const [removed] = ids.splice(dragIndex, 1);
                       ids.splice(i, 0, removed);
                       onReorder(ids);
@@ -653,7 +953,7 @@ export function Sidebar({
                     <div className={styles.itemRow}>
                       <button
                         type="button"
-                        className={`${styles.item} ${styles.itemCard} ${i % 2 === 0 ? styles.itemPastelBlue : styles.itemPastelGreen} ${t.id === selectedThreadId ? styles.itemSelected : ""}`}
+                        className={`${styles.item} ${styles.itemCard} ${i % 2 === 0 ? styles.itemPastelBlue : styles.itemPastelGreen} ${t.id === detailThreadId ? styles.itemSelected : ""}`}
                         onClick={() => {
                           onSelectThread(t.id);
                           setDetailThreadId(t.id);
@@ -662,9 +962,17 @@ export function Sidebar({
                         onMouseLeave={() => statusFilter === "resolved" && onHoverResolvedThread(null)}
                       >
                         <span className={styles.pinBadge}>{t.index}</span>
+                        {t.assignedTo === (createdBy ?? "").trim() &&
+                          createdBy.trim() &&
+                          getLastSeenAt(projectId ?? "", createdBy ?? "", t.id) == null && (
+                            <span className={styles.taskNewDot} aria-label="New task" />
+                          )}
                         <div className={styles.itemBody}>
                           <span className={t.status === "OPEN" ? styles.badgeOpen : styles.badgeResolved}>
                             {t.status}
+                          </span>
+                          <span className={styles.itemPage} title={t.pageUrl}>
+                            {pagePathFromUrl(t.pageUrl)}
                           </span>
                           <span className={styles.itemSnippet}>
                             {(t.latestComment?.body ?? "").slice(0, 60)}
@@ -672,6 +980,7 @@ export function Sidebar({
                           </span>
                           <span className={styles.itemDate}>
                             {t.status === "OPEN" ? formatDate(t.createdAt) : `Created ${formatDateTime(t.createdAt)}`}
+                            {t.assignedTo && `  •  Assigned to: ${t.assignedTo}`}
                           </span>
                           {t.status === "RESOLVED" && t.resolvedBy && t.resolvedAt && (
                             <span className={styles.itemResolvedMeta}>
@@ -681,7 +990,7 @@ export function Sidebar({
                           )}
                         </div>
                       </button>
-                      {onReorder && (
+                      {onReorder && showReorder && (
                         <span
                           role="button"
                           tabIndex={0}
@@ -735,28 +1044,7 @@ export function Sidebar({
         )}
           </>
         )}
-        {confettiTrigger && <ConfettiShower fire={confettiTrigger} />}
-        {onEnterCommentMode && (
-          <div className={`${styles.sidebarFooter} ${open ? styles.sidebarFooterPillboxFixed : ""}`}>
-            <div
-              className={`${styles.sidebarCommentPillbox} ${open ? styles.sidebarCommentPillboxFixed : ""}`}
-              aria-label="Add comment"
-            >
-              <button
-                type="button"
-                className={`${styles.sidebarCommentBtn} ${commentMode ? styles.sidebarCommentBtnActive : ""}`}
-                onClick={onEnterCommentMode}
-                title="Add comment (click page to place)"
-                aria-label="Add comment"
-                aria-pressed={commentMode}
-              >
-                <svg className={styles.sidebarCommentIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                  <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        )}
+        {confettiKey > 0 && <ConfettiShower key={confettiKey} fire />}
       </div>
     </aside>
   );

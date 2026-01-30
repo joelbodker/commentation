@@ -20,8 +20,8 @@ export async function ensureReady(): Promise<boolean> {
 
 export async function getThreads(
   projectId: string,
-  pageUrl: string,
-  statusFilter: "open" | "resolved"
+  pageUrl: string | null,
+  statusFilter: "open" | "resolved" | "all"
 ): Promise<ThreadListItem[]> {
   await init();
   if (useApi) {
@@ -50,7 +50,7 @@ export async function createThread(
 
 export async function getThread(
   projectId: string,
-  pageUrl: string,
+  pageUrl: string | null,
   threadId: string
 ): Promise<Thread | null> {
   await init();

@@ -1,9 +1,8 @@
 /**
  * Embeddable entry: run when loaded via <script src=".../embed.js" data-project-id="...">.
  * Reads config from the script tag, creates #fig-comments-root, and mounts the overlay.
- * Uses in-memory store only (no API).
  */
-import React from "react";
+import React, { Component, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import { Overlay } from "./Overlay";
 
@@ -17,6 +16,47 @@ function getScriptConfig(): { projectId: string } | null {
   const projectId = script.getAttribute("data-project-id")?.trim();
   if (!projectId) return null;
   return { projectId };
+}
+
+class ErrorBoundary extends Component<
+  { projectId: string; children: ReactNode },
+  { hasError: boolean }
+> {
+  state = { hasError: false };
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: unknown) {
+    console.error("[Commentation]", error);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div
+          style={{
+            position: "fixed",
+            bottom: 24,
+            right: 24,
+            zIndex: 2147483647,
+            padding: "8px 16px",
+            background: "#fff",
+            border: "1px solid #e5e5e5",
+            borderRadius: 28,
+            boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+            fontFamily: "system-ui, sans-serif",
+            fontSize: 14,
+            color: "#333",
+          }}
+        >
+          Commentation error — check console
+        </div>
+      );
+    }
+    return this.props.children;
+  }
 }
 
 function main() {
@@ -38,7 +78,9 @@ function main() {
   const root = createRoot(rootEl);
   root.render(
     <React.StrictMode>
-      <Overlay projectId={config.projectId} />
+      <ErrorBoundary projectId={config.projectId}>
+        <Overlay projectId={config.projectId} />
+      </ErrorBoundary>
     </React.StrictMode>
   );
 }
