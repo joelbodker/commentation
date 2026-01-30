@@ -1,0 +1,80 @@
+import React from 'react';
+import { ArrowRight, Terminal, Github, Check, ChevronRight } from 'lucide-react';
+import { CommentationWidget } from "@/app/components/CommentationWidget";
+import { Hero } from "@/app/components/landing/Hero";
+import { Features } from "@/app/components/landing/Features";
+import { HowItWorks } from "@/app/components/landing/HowItWorks";
+import { Integration } from "@/app/components/landing/Integration";
+import { Support } from "@/app/components/landing/Support";
+import { Toaster } from "sonner";
+
+export default function App() {
+  return (
+    <div className="min-h-screen bg-white dark:bg-black text-zinc-900 dark:text-zinc-100 font-sans selection:bg-blue-500/30 selection:text-blue-200">
+      <Toaster position="top-center" theme="dark" />
+      
+      {/* 
+         The widget wraps the entire application.
+         The 'active' prop could be toggled by a button in the navbar if we wanted a "Preview Mode" vs "Edit Mode".
+         For this demo, it's always active so users can click anywhere.
+      */}
+      <CommentationWidget active={true}>
+        
+        {/* Navigation */}
+        <nav className="fixed top-0 left-0 right-0 z-40 bg-white/80 dark:bg-black/80 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800">
+          <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+            <div className="flex items-center gap-2 font-bold text-lg tracking-tight">
+              <div className="w-6 h-6 bg-zinc-900 dark:bg-white rounded flex items-center justify-center text-white dark:text-black font-mono text-xs">
+                C
+              </div>
+              Commentation
+            </div>
+            <div className="hidden md:flex items-center gap-6 text-sm font-medium text-zinc-600 dark:text-zinc-400">
+              <a href="#" className="hover:text-zinc-900 dark:hover:text-white transition-colors">Documentation</a>
+              <a href="https://github.com" target="_blank" className="hover:text-zinc-900 dark:hover:text-white transition-colors">GitHub</a>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="hidden md:flex items-center gap-2 text-xs text-zinc-500 px-2 py-1 bg-zinc-100 dark:bg-zinc-900 rounded border border-zinc-200 dark:border-zinc-800">
+                 <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                 System Normal
+              </div>
+              <button className="bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 px-4 py-2 rounded-md text-sm font-medium hover:opacity-90 transition-colors">
+                Sign In
+              </button>
+            </div>
+          </div>
+        </nav>
+
+        <main className="bg-white dark:bg-black">
+          <Hero />
+          <Features />
+          <Integration />
+          <HowItWorks />
+          <Support />
+          
+          {/* Simple Footer */}
+          <footer className="py-12 px-6 border-t border-zinc-100 dark:border-zinc-800 bg-white dark:bg-black">
+             <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+                <div className="flex items-center gap-2 font-bold text-sm text-zinc-900 dark:text-white">
+                   <div className="w-5 h-5 bg-zinc-900 dark:bg-white rounded flex items-center justify-center text-white dark:text-black font-mono text-[10px]">
+                      C
+                   </div>
+                   Commentation
+                </div>
+                <div className="flex gap-6 text-xs text-zinc-500 dark:text-zinc-500">
+                   <a href="#" className="hover:text-zinc-900 dark:hover:text-zinc-300">Docs</a>
+                   <a href="#" className="hover:text-zinc-900 dark:hover:text-zinc-300">API</a>
+                   <a href="#" className="hover:text-zinc-900 dark:hover:text-zinc-300">Privacy</a>
+                   <a href="#" className="hover:text-zinc-900 dark:hover:text-zinc-300">Terms</a>
+                </div>
+                <div className="text-xs text-zinc-400 dark:text-zinc-600 font-mono">
+                   v2.4.0
+                </div>
+             </div>
+          </footer>
+        </main>
+
+      </CommentationWidget>
+    </div>
+  );
+}
