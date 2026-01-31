@@ -538,6 +538,7 @@ function OverlayInner() {
                     createdBy={createdBy}
                     onPost={handleComposerPost}
                     onCancel={handleComposerCancel}
+                    theme={theme}
                   />
                 );
               }

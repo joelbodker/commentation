@@ -14,12 +14,14 @@ export function CommentComposer({
   createdBy,
   onPost,
   onCancel,
+  theme = "dark",
 }: {
   x: number;
   y: number;
   createdBy: string;
   onPost: (body: string, name: string) => void | Promise<void>;
   onCancel: () => void;
+  theme?: "light" | "dark";
 }) {
   const [body, setBody] = useState("");
   const [posting, setPosting] = useState(false);
@@ -75,7 +77,7 @@ export function CommentComposer({
   return (
     <div
       ref={ref}
-      className={styles.composer}
+      className={`${styles.composer} ${theme === "dark" ? styles.composerDark : ""}`}
       style={{
         position: "fixed",
         width: "min(90vw, 320px)",

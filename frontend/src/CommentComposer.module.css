@@ -7,6 +7,52 @@
   z-index: 2147483646;
 }
 
+.composerDark {
+  background: #1e1e1e;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.composerDark .label {
+  color: #a0a0a0;
+}
+
+.composerDark .textarea {
+  background: #2d2d2d;
+  border-color: #404040;
+  color: #e0e0e0;
+}
+
+.composerDark .textarea::placeholder {
+  color: #707070;
+}
+
+.composerDark .textarea:focus {
+  border-color: #5eb8ff;
+}
+
+.composerDark .cancel {
+  background: #2d2d2d;
+  border-color: #505050;
+  color: #d0d0d0;
+}
+
+.composerDark .cancel:hover {
+  background: #3d3d3d;
+}
+
+.composerDark .submit {
+  background: #5eb8ff;
+}
+
+.composerDark .submit:hover:not(:disabled) {
+  background: #7ec8ff;
+}
+
+.composerDark .error {
+  color: #ff6b6b;
+}
+
 .label {
   display: block;
   font-size: 11px;
