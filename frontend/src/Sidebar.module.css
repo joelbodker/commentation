@@ -440,29 +440,26 @@
   position: relative;
 }
 
-/* Chasing blue stroke around name entry field when name required */
+/* Rotating blue ring (matches pillbox comment button) when name required */
 .nameInputWrapperHighlight {
   position: relative;
 }
 
-.nameInputChaseStroke {
+.nameInputWrapperHighlight::after {
+  content: "";
   position: absolute;
   inset: -2px;
-  width: calc(100% + 4px);
-  height: calc(100% + 4px);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  border-top-color: #0d99ff;
+  animation: nameInputRingSpin 0.8s linear infinite;
   pointer-events: none;
-  color: #0d99ff;
-  opacity: 0.85;
+  z-index: 0;
 }
 
-.nameInputChaseStroke rect {
-  stroke-dasharray: 12 388;
-  animation: nameInputChase 4s linear infinite;
-}
-
-@keyframes nameInputChase {
+@keyframes nameInputRingSpin {
   to {
-    stroke-dashoffset: -400;
+    transform: rotate(360deg);
   }
 }
 
@@ -1424,9 +1421,8 @@
   }
 }
 
-.sidebar[data-theme="dark"] .nameInputChaseStroke {
-  color: #5eb8ff;
-  opacity: 0.9;
+.sidebar[data-theme="dark"] .nameInputWrapperHighlight::after {
+  border-top-color: #5eb8ff;
 }
 
 .sidebar[data-theme="dark"] .assignSelect,

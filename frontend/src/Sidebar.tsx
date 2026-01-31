@@ -839,11 +839,6 @@ export function Sidebar({
               </label>
               <div className={styles.nameInputRow}>
                 <div className={`${styles.nameInputWrapper} ${showNameRequiredPrompt ? styles.nameInputWrapperHighlight : ""}`}>
-                  {showNameRequiredPrompt && (
-                    <svg className={styles.nameInputChaseStroke} viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden>
-                      <rect x="1" y="1" width="98" height="98" rx="6" fill="none" stroke="currentColor" strokeWidth="2" />
-                    </svg>
-                  )}
                   <input
                     id="fig-comments-your-name"
                     type="text"
