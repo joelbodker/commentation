@@ -6,20 +6,35 @@ interface IntroAnimationProps {
 }
 
 export function IntroAnimation({ onComplete }: IntroAnimationProps) {
-  const [phase, setPhase] = useState<'title' | 'cursor' | 'click' | 'popup' | 'typing' | 'fadeout' | 'done'>('title');
+  const [phase, setPhase] = useState<'title' | 'cursor' | 'click' | 'popup' | 'typing' | 'popupMouse' | 'popupClick' | 'fadeout' | 'done'>('title');
   const [typedTitle, setTypedTitle] = useState('');
   const [typedText, setTypedText] = useState('');
+  const [cursorVisible, setCursorVisible] = useState(true);
+  const [showTitleCursor, setShowTitleCursor] = useState(false); // true after 1.5s, so cursor can blink 3x before typing
   const titleRef = useRef<HTMLDivElement>(null);
   
   const titleText = "Commentation";
   const commentText = "i don't like this font, change it for something better.";
   
-  // Title typing animation - starts after 1.5s delay
+  // Show cursor after 1.5s, then it blinks 3 times before typing
+  useEffect(() => {
+    const id = setTimeout(() => setShowTitleCursor(true), 1500);
+    return () => clearTimeout(id);
+  }, []);
+
+  // Old-school cursor blink: instant on/off, no fade
+  useEffect(() => {
+    const id = setInterval(() => setCursorVisible((v) => !v), 530);
+    return () => clearInterval(id);
+  }, []);
+
+  // Title typing animation - starts after 1.5s delay + 3 cursor blinks
   useEffect(() => {
     let index = 0;
     let typeInterval: NodeJS.Timeout;
     
-    // Wait 1.5 seconds before starting to type
+    // 1.5s initial delay + 3 cursor blinks before first letter
+    const blinkDuration = 3 * 530 * 2; // 3 blinks × 2 states × 530ms
     const startDelay = setTimeout(() => {
       typeInterval = setInterval(() => {
         if (index < titleText.length) {
@@ -29,7 +44,7 @@ export function IntroAnimation({ onComplete }: IntroAnimationProps) {
           clearInterval(typeInterval);
         }
       }, 100); // Typing speed for title
-    }, 1500);
+    }, 1500 + blinkDuration);
     
     return () => {
       clearTimeout(startDelay);
@@ -37,21 +52,24 @@ export function IntroAnimation({ onComplete }: IntroAnimationProps) {
     };
   }, []);
   
-  // Phase timing - adjusted for 1.5s initial delay + title typing
+  // Phase timing - 1.5s + 3 blinks + title typing + pauses
   useEffect(() => {
     const timers: NodeJS.Timeout[] = [];
+    const blinkDuration = 3 * 530 * 2; // 3 blinks
+    const titleTypingDuration = 12 * 100; // 12 chars × 100ms
     
-    // 1.5s delay + title typing (12 chars * 100ms = 1200ms) + pause = 4000ms
-    timers.push(setTimeout(() => setPhase('cursor'), 4000));
+    // Mouse appears after: 1.5s + 3 blinks + title typing + short pause
+    const cursorPhaseAt = 1500 + blinkDuration + titleTypingDuration + 600;
+    timers.push(setTimeout(() => setPhase('cursor'), cursorPhaseAt));
     
-    // Cursor moves to title
-    timers.push(setTimeout(() => setPhase('click'), 5200));
+    // Click animation
+    timers.push(setTimeout(() => setPhase('click'), cursorPhaseAt + 1200));
     
-    // Click animation, then show comment box (popup phase)
-    timers.push(setTimeout(() => setPhase('popup'), 5800));
+    // Popup opens
+    timers.push(setTimeout(() => setPhase('popup'), cursorPhaseAt + 1800));
     
-    // Wait 1 second after popup opens before typing starts
-    timers.push(setTimeout(() => setPhase('typing'), 6800));
+    // Typing in popup starts 1s after popup opens
+    timers.push(setTimeout(() => setPhase('typing'), cursorPhaseAt + 2800));
     
     return () => timers.forEach(clearTimeout);
   }, []);
@@ -61,31 +79,55 @@ export function IntroAnimation({ onComplete }: IntroAnimationProps) {
     if (phase !== 'typing') return;
     
     let index = 0;
-    const typeInterval = setInterval(() => {
-      if (index < commentText.length) {
-        setTypedText(commentText.slice(0, index + 1));
-        index++;
-      } else {
-        clearInterval(typeInterval);
-        // Wait longer after typing finishes before "clicking" Post
-        setTimeout(() => {
-          setPhase('fadeout');
-          // After fade out, signal completion
-          setTimeout(() => {
-            setPhase('done');
-            onComplete();
-          }, 800);
-        }, 1200); // More breathing room before Post
-      }
-    }, 65); // Slower typing speed (was 45ms)
+    let timeoutId: NodeJS.Timeout;
     
-    return () => clearInterval(typeInterval);
+    const typeNext = () => {
+      if (index >= commentText.length) {
+        setTimeout(() => setPhase('popupMouse'), 800);
+        return;
+      }
+      setTypedText(commentText.slice(0, index + 1));
+      const char = commentText[index];
+      index++;
+      // Pause a little longer after comma
+      const delay = char === ',' ? 400 : 65;
+      timeoutId = setTimeout(typeNext, delay);
+    };
+    
+    timeoutId = setTimeout(typeNext, 65);
+    
+    return () => clearTimeout(timeoutId);
+  }, [phase, onComplete]);
+
+  // Popup mouse: appear at text end → after 0.5s move to Post → click
+  useEffect(() => {
+    if (phase !== 'popupMouse') return;
+    
+    const t = setTimeout(() => setPhase('popupClick'), 500);
+    return () => clearTimeout(t);
+  }, [phase]);
+
+  // Popup click: button press animation, wait 1.5s, fadeout
+  useEffect(() => {
+    if (phase !== 'popupClick') return;
+    
+    const timers: NodeJS.Timeout[] = [];
+    // After 1.5 seconds, fade out
+    timers.push(setTimeout(() => {
+      setPhase('fadeout');
+      setTimeout(() => {
+        setPhase('done');
+        onComplete();
+      }, 800);
+    }, 1500));
+    
+    return () => timers.forEach(clearTimeout);
   }, [phase, onComplete]);
   
   if (phase === 'done') return null;
   
   // Show popup in popup phase or later
-  const showPopup = phase === 'popup' || phase === 'typing' || phase === 'fadeout';
+  const showPopup = phase === 'popup' || phase === 'typing' || phase === 'popupMouse' || phase === 'popupClick' || phase === 'fadeout';
   
   return (
     <AnimatePresence>
@@ -105,42 +147,41 @@ export function IntroAnimation({ onComplete }: IntroAnimationProps) {
           justifyContent: 'center',
         }}
       >
-        {/* Title: "Commentation" - typed letter by letter, left-aligned */}
+        {/* Title: "Commentation" - typed letter by letter, fixed position (no movement) */}
         <motion.div
           ref={titleRef}
           initial={{ opacity: 1 }}
           style={{
             fontFamily: '"JMH Typewriter", "Courier New", Courier, monospace',
             fontSize: 'clamp(32px, 8vw, 72px)',
-            fontWeight: 400, // Thinner weight
+            fontWeight: 400,
             color: '#e8e8e8',
-            letterSpacing: '0.02em', // Slightly more spacing for lighter feel
+            letterSpacing: '0.02em',
             userSelect: 'none',
             position: 'relative',
-            // Fixed width based on full title so it doesn't shift as letters appear
-            width: 'max-content',
-            minWidth: '12ch', // Reserve space for "Commentation" (12 chars)
-            textAlign: 'left',
+            display: 'inline-block',
           }}
         >
-          {/* Invisible full title to reserve space */}
-          <span style={{ visibility: 'hidden', position: 'absolute' }}>{titleText}</span>
-          {/* Typed title with old-school block cursor */}
-          <span>{typedTitle}</span>
-          {typedTitle.length < titleText.length && (
-            <motion.span
-              animate={{ opacity: [1, 0] }}
-              transition={{ duration: 0.53, repeat: Infinity, repeatType: 'reverse' }}
-              style={{
-                display: 'inline-block',
-                width: 'clamp(16px, 4vw, 36px)',
-                height: 'clamp(32px, 8vw, 72px)',
-                background: '#e8e8e8',
-                marginLeft: 2,
-                verticalAlign: 'bottom',
-              }}
-            />
-          )}
+          {/* Invisible full title reserves space - keeps container fixed width */}
+          <span style={{ visibility: 'hidden', display: 'inline-block' }} aria-hidden>{titleText}</span>
+          {/* Typed content overlaid at left - grows right within fixed container */}
+          <span style={{ position: 'absolute', left: 0, top: 0, whiteSpace: 'nowrap' }}>
+            {typedTitle}
+            {showTitleCursor && typedTitle.length < titleText.length && (
+              <span
+                style={{
+                  display: 'inline-block',
+                  width: 'clamp(16px, 4vw, 36px)',
+                  height: '0.85em',
+                  background: '#e8e8e8',
+                  marginLeft: 2,
+                  verticalAlign: 'text-bottom',
+                  opacity: cursorVisible ? 1 : 0,
+                  transition: 'none',
+                }}
+              />
+            )}
+          </span>
           
           {/* Blue pin that appears on click */}
           <AnimatePresence>
@@ -204,7 +245,7 @@ export function IntroAnimation({ onComplete }: IntroAnimationProps) {
                     textTransform: 'uppercase', 
                     letterSpacing: '0.08em' 
                   }}>
-                    New Thread
+                    New Comment
                   </span>
                   <span style={{ fontSize: 14, color: '#555', cursor: 'pointer' }}>×</span>
                 </div>
@@ -221,7 +262,7 @@ export function IntroAnimation({ onComplete }: IntroAnimationProps) {
                     wordBreak: 'break-word',
                   }}>
                     {typedText}
-                    {(phase === 'typing' || phase === 'popup') && (
+                    {(phase === 'typing' || phase === 'popup') && typedText.length < commentText.length && (
                       <motion.span
                         animate={{ opacity: [1, 0] }}
                         transition={{ duration: 0.5, repeat: Infinity, repeatType: 'reverse' }}
@@ -246,19 +287,74 @@ export function IntroAnimation({ onComplete }: IntroAnimationProps) {
                   justifyContent: 'flex-end',
                   background: '#141414',
                 }}>
-                  <div style={{
-                    padding: '8px 16px',
-                    background: phase === 'fadeout' ? '#0d99ff' : '#333',
-                    borderRadius: 6,
-                    fontSize: 13,
-                    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                    fontWeight: 500,
-                    color: '#fff',
-                    transition: 'background 0.2s',
-                  }}>
+                  <motion.div
+                    animate={
+                      phase === 'popupClick'
+                        ? { scale: [1, 0.92, 1], y: [0, 1, 0] }
+                        : { scale: 1, y: 0 }
+                    }
+                    transition={
+                      phase === 'popupClick'
+                        ? { scale: { duration: 0.2, delay: 0.6 }, y: { duration: 0.2, delay: 0.6 } }
+                        : {}
+                    }
+                    style={{
+                      padding: '8px 16px',
+                      background: (phase === 'popupClick' || phase === 'fadeout') ? '#0d99ff' : '#333',
+                      borderRadius: 6,
+                      fontSize: 13,
+                      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                      fontWeight: 500,
+                      color: '#fff',
+                    }}
+                  >
                     Post
-                  </div>
+                  </motion.div>
                 </div>
+                
+                {/* Mouse cursor inside popup - appears at text end, moves to Post, clicks */}
+                <AnimatePresence>
+                  {(phase === 'popupMouse' || phase === 'popupClick') && (
+                    <motion.div
+                      initial={{ opacity: 0, x: 160, y: 95 }}
+                      animate={
+                        phase === 'popupMouse'
+                          ? { opacity: 1, x: 160, y: 95 }
+                          : phase === 'popupClick'
+                            ? { opacity: 1, x: 290, y: 178, scale: [1, 0.85, 1] }
+                            : {}
+                      }
+                      transition={
+                        phase === 'popupMouse'
+                          ? { duration: 0.3 }
+                          : {
+                              x: { duration: 0.6, ease: [0.25, 0.1, 0.25, 1] },
+                              y: { duration: 0.6, ease: [0.25, 0.1, 0.25, 1] },
+                              scale: { duration: 0.15, delay: 0.6 },
+                            }
+                      }
+                      exit={{ opacity: 0 }}
+                      style={{
+                        position: 'absolute',
+                        left: 0,
+                        top: 0,
+                        marginLeft: -5,
+                        marginTop: -5,
+                        pointerEvents: 'none',
+                        zIndex: 10,
+                      }}
+                    >
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <path
+                          d="M5.5 3.21V20.8c0 .45.54.67.85.35l4.86-4.86a.5.5 0 0 1 .35-.15h6.87a.5.5 0 0 0 .35-.85L6.35 2.86a.5.5 0 0 0-.85.35Z"
+                          fill="#fff"
+                          stroke="#000"
+                          strokeWidth="1.5"
+                        />
+                      </svg>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </motion.div>
             )}
           </AnimatePresence>
@@ -271,14 +367,14 @@ export function IntroAnimation({ onComplete }: IntroAnimationProps) {
               initial={{ x: 200, y: 150, opacity: 0 }}
               animate={
                 phase === 'cursor' 
-                  ? { x: 0, y: 0, opacity: 1 }
-                  : { x: 0, y: 0, opacity: 1, scale: [1, 0.85, 1] }
+                  ? { x: 0, y: 0, opacity: 1, scale: 1 }
+                  : { x: 0, y: 0, opacity: 1, scale: [1, 0.8, 1] }
               }
               exit={{ opacity: 0 }}
               transition={
                 phase === 'cursor'
                   ? { duration: 1, ease: [0.25, 0.1, 0.25, 1] }
-                  : { duration: 0.3 }
+                  : { scale: { duration: 0.2, ease: 'easeOut' } }
               }
               style={{
                 position: 'absolute',

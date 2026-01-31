@@ -1,29 +1,23 @@
 #!/bin/bash
 
 # Start script for Commentation project
-# Starts the frontend dev server (backend not needed - uses in-memory store)
+# Starts the landing page (with intro animation) and optionally the frontend embed
 
 set -e
 
 echo "🚀 Starting Commentation..."
 
-# Check if node_modules exists in root
-if [ ! -d "node_modules" ]; then
-  echo "📦 Installing dependencies..."
-  npm install
+# Check if landing node_modules exists
+if [ ! -d "landing/node_modules" ]; then
+  echo "📦 Installing landing page dependencies..."
+  npm install --prefix landing
 fi
 
-# Check if frontend node_modules exists
-if [ ! -d "frontend/node_modules" ]; then
-  echo "📦 Installing frontend dependencies..."
-  npm install --prefix frontend
-fi
-
-echo "✨ Starting frontend dev server..."
-echo "🌐 Frontend will be available at http://localhost:5173"
+echo "✨ Starting landing page dev server..."
+echo "🌐 Landing page will be available at http://localhost:5174"
 echo ""
 echo "Press Ctrl+C to stop"
 echo ""
 
-# Start the frontend dev server
-npm run dev:frontend
+# Start the landing page dev server
+npm run dev --prefix landing

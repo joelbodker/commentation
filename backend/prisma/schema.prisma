@@ -1,4 +1,4 @@
-// Figma-style comments – minimal data model for MVP.
+// Pin-based contextual comments – minimal data model for MVP.
 // Later: add auth (GitHub OAuth), teams, GitHub Issue sync.
 
 generator client {

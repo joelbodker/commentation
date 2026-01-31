@@ -11,6 +11,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      '@commentation': path.resolve(__dirname, '../frontend/src'),
     },
   },
   server: {

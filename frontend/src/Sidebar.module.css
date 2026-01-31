@@ -388,6 +388,18 @@
   font-size: 13px;
   color: #8a7300;
   flex-shrink: 0;
+  animation: nameRequiredPulse 2.5s ease-in-out infinite;
+}
+
+@keyframes nameRequiredPulse {
+  0%, 100% {
+    border-color: #f0e6c8;
+    box-shadow: 0 0 0 0 rgba(138, 115, 0, 0.15);
+  }
+  50% {
+    border-color: #d4b84a;
+    box-shadow: 0 0 0 3px rgba(138, 115, 0, 0.12);
+  }
 }
 
 .nameRow {
@@ -421,6 +433,35 @@
   display: flex;
   gap: 6px;
   align-items: center;
+}
+
+/* Blue rotating ring (matches pillbox/comment buttons) when name required */
+.nameInputRowHighlight {
+  position: relative;
+}
+
+.nameInputRowHighlight::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  border-top-color: #0d99ff;
+  animation: nameInputRingSpin 0.8s linear infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.nameInputRowHighlight .nameInput,
+.nameInputRowHighlight .nameOkBtn {
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes nameInputRingSpin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .nameInputRow .nameInput {
@@ -1359,6 +1400,25 @@
   background: #3d3520;
   border-color: #4a4030;
   color: #e6d9a8;
+}
+
+.sidebar[data-theme="dark"] .nameRequiredTooltip {
+  animation: nameRequiredPulseDark 2.5s ease-in-out infinite;
+}
+
+@keyframes nameRequiredPulseDark {
+  0%, 100% {
+    border-color: #4a4030;
+    box-shadow: 0 0 0 0 rgba(230, 217, 168, 0.08);
+  }
+  50% {
+    border-color: #6b5d30;
+    box-shadow: 0 0 0 3px rgba(230, 217, 168, 0.1);
+  }
+}
+
+.sidebar[data-theme="dark"] .nameInputRowHighlight::after {
+  border-top-color: #5eb8ff;
 }
 
 .sidebar[data-theme="dark"] .assignSelect,

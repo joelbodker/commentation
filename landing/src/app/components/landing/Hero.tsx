@@ -1,8 +1,17 @@
-import React from 'react';
-import { ArrowRight, Terminal, Github, ChevronRight, Command } from 'lucide-react';
-import { motion } from 'motion/react';
+import React, { useState } from 'react';
+import { Github, ChevronRight, Command, Check } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+
+const NPM_COMMAND = 'npm install commentation';
 
 export function Hero() {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(NPM_COMMAND);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 3000);
+  };
   return (
     <section className="relative pt-32 pb-24 px-6 max-w-7xl mx-auto overflow-hidden">
       {/* Background Grid */}
@@ -16,10 +25,23 @@ export function Hero() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <div className="inline-flex items-center gap-2 px-3 py-1 mb-8 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700">
-              <span className="flex h-2 w-2 rounded-full bg-emerald-500"></span>
+            <motion.div
+              className="inline-flex items-center gap-2 px-3 py-1 mb-8 rounded-full bg-zinc-100 dark:bg-zinc-800 border-2 border-emerald-500/50"
+              animate={{
+                borderColor: ['rgba(16, 185, 129, 0.3)', 'rgba(16, 185, 129, 0.8)', 'rgba(16, 185, 129, 0.3)'],
+              }}
+              transition={{
+                duration: 3,
+                repeat: Infinity,
+                ease: 'easeInOut',
+              }}
+            >
+              <span
+                className="flex h-2 w-2 rounded-full bg-emerald-500 shrink-0"
+                style={{ boxShadow: '0 0 12px 4px rgba(16, 185, 129, 0.6)' }}
+              />
               <span className="text-xs font-mono text-zinc-600 dark:text-zinc-400">Free & Open Source</span>
-            </div>
+            </motion.div>
             
             <h1 className="text-5xl lg:text-7xl font-bold tracking-tight text-zinc-900 dark:text-white mb-8 leading-[1.1]">
               Collaboration for <br />
@@ -33,13 +55,39 @@ export function Hero() {
             </p>
 
             <div className="flex flex-col sm:flex-row items-center gap-4">
-              <button className="h-12 px-8 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-lg font-medium hover:opacity-90 transition-all flex items-center gap-2">
-                <Terminal className="w-4 h-4" />
-                <span>npm install @commentation</span>
+              <button
+                onClick={handleCopy}
+                className="h-12 min-w-[260px] px-8 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-lg font-medium hover:opacity-90 transition-all flex items-center justify-center gap-2 overflow-hidden whitespace-nowrap"
+              >
+                <AnimatePresence mode="wait">
+                  {copied ? (
+                    <motion.span
+                      key="copied"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.25 }}
+                      className="flex items-center gap-2"
+                    >
+                      <Check className="w-4 h-4 shrink-0" />
+                      Copied to clipboard
+                    </motion.span>
+                  ) : (
+                    <motion.span
+                      key="command"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.25 }}
+                    >
+                      {NPM_COMMAND}
+                    </motion.span>
+                  )}
+                </AnimatePresence>
               </button>
-              <button className="h-12 px-8 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white border border-zinc-200 dark:border-zinc-800 rounded-lg font-medium hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all flex items-center gap-2">
-                <Github className="w-4 h-4" /> Star on GitHub
-              </button>
+              <a href="https://github.com/joelbodker/commentation" target="_blank" rel="noopener noreferrer" className="h-12 px-8 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white border border-zinc-200 dark:border-zinc-800 rounded-lg font-medium hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all flex items-center gap-2">
+                <Github className="w-4 h-4" /> View on GitHub
+              </a>
             </div>
             
             <div className="mt-8 flex items-center gap-6 text-sm text-zinc-500 font-mono">
@@ -101,7 +149,7 @@ export function Hero() {
                    <span className="text-xs font-semibold text-zinc-900 dark:text-white">alex_dev</span>
                    <span className="text-[10px] text-zinc-400 ml-auto">now</span>
                  </div>
-                 <p className="text-xs text-zinc-600 dark:text-zinc-300 mb-2">The padding on this component doesn't match the Figma file.</p>
+                 <p className="text-xs text-zinc-600 dark:text-zinc-300 mb-2">The padding on this component doesn't match the design spec.</p>
                  <div className="flex gap-2">
                     <button className="text-[10px] font-medium text-zinc-500 hover:text-zinc-900 border border-zinc-200 px-2 py-1 rounded">Resolve</button>
                     <button className="text-[10px] font-medium text-zinc-500 hover:text-zinc-900 border border-zinc-200 px-2 py-1 rounded">Reply</button>

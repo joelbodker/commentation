@@ -61,12 +61,12 @@ export type Theme = "light" | "dark";
 function OverlayInner() {
   const { projectId } = useConfig();
   const [theme, setTheme] = useState<Theme>(() => {
-    if (typeof window === "undefined") return "light";
+    if (typeof window === "undefined") return "dark";
     try {
       const stored = localStorage.getItem(THEME_STORAGE_KEY);
-      return stored === "dark" ? "dark" : "light";
+      return stored === "light" ? "light" : "dark";
     } catch {
-      return "light";
+      return "dark";
     }
   });
   const [threads, setThreads] = useState<ThreadListItem[]>([]);
@@ -199,9 +199,11 @@ function OverlayInner() {
     return () => window.removeEventListener("click", handlePageClick);
   }, [commentMode, handlePageClick]);
 
-  // Figma-style: show crosshair cursor when in comment mode so it's obvious you're placing a pin.
+  // Show crosshair cursor when in comment mode so it's obvious you're placing a pin.
+  // When name-required popup shows (pendingPin without name), revert to default cursor.
+  const showCrosshair = commentMode && !(pendingPin && !createdBy.trim());
   useEffect(() => {
-    if (!commentMode) {
+    if (!showCrosshair) {
       document.body.style.cursor = "";
       return;
     }
@@ -210,7 +212,7 @@ function OverlayInner() {
     return () => {
       document.body.style.cursor = prev;
     };
-  }, [commentMode]);
+  }, [showCrosshair]);
 
   const handleComposerCancel = useCallback(() => {
     setPendingPin(null);
@@ -423,22 +425,6 @@ function OverlayInner() {
 
   return (
     <div className={styles.wrapper} data-theme={theme}>
-      <div className={styles.pageThemeSwitch} aria-label="Page theme">
-        <button
-          type="button"
-          className={styles.pageThemeToggle}
-          onClick={() => handleThemeChange(theme === "light" ? "dark" : "light")}
-          title={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}
-          aria-label={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}
-        >
-          <span className={theme === "light" ? styles.pageThemeIconOn : styles.pageThemeIconOff} aria-hidden>
-            ☀
-          </span>
-          <span className={theme === "dark" ? styles.pageThemeIconOn : styles.pageThemeIconOff} aria-hidden>
-            ☽
-          </span>
-        </button>
-      </div>
       <div className={styles.pinsLayer} aria-hidden>
         <PinsLayer
           threads={openThreadsForPins}

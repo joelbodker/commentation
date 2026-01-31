@@ -61,7 +61,12 @@ export async function checkAvailable(): Promise<boolean> {
     const base = baseUrl();
     if (!base) return false;
     const res = await fetch(`${base}/api/health`, { method: "GET" });
-    return res.ok;
+    if (!res.ok) return false;
+    // Vite SPA fallback returns HTML for unknown routes; verify we got JSON
+    const ct = res.headers.get("content-type") ?? "";
+    if (!ct.includes("application/json")) return false;
+    const data = (await res.json()) as { ok?: boolean };
+    return data?.ok === true;
   } catch {
     return false;
   }

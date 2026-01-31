@@ -1,5 +1,5 @@
 /**
- * Figma-style comments API.
+ * Pin-based contextual comments API.
  * Reads PORT and DATABASE_URL from env. CORS enabled for dev.
  */
 import express from "express";

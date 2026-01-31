@@ -1,6 +1,4 @@
 import React, { useState } from 'react';
-import { ArrowRight, Terminal, Github, Check, ChevronRight } from 'lucide-react';
-import { CommentationWidget } from "@/app/components/CommentationWidget";
 import { Hero } from "@/app/components/landing/Hero";
 import { Features } from "@/app/components/landing/Features";
 import { HowItWorks } from "@/app/components/landing/HowItWorks";
@@ -9,6 +7,7 @@ import { Support } from "@/app/components/landing/Support";
 import { IntroAnimation } from "@/app/components/IntroAnimation";
 import { Toaster } from "sonner";
 import { motion, AnimatePresence } from "motion/react";
+import { Overlay } from "@commentation/Overlay";
 
 export default function App() {
   const [introComplete, setIntroComplete] = useState(false);
@@ -28,10 +27,9 @@ export default function App() {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8, ease: 'easeOut' }}
           >
-            <CommentationWidget active={true}>
-              
-              {/* Navigation */}
-              <nav className="fixed top-0 left-0 right-0 z-40 bg-white/80 dark:bg-black/80 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800">
+            {/* Landing page content - outside fig-comments-root so clicks create pins */}
+            {/* Navigation */}
+            <nav className="fixed top-0 left-0 right-0 z-40 bg-white/80 dark:bg-black/80 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800">
                 <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
                   <div className="flex items-center gap-2 font-bold text-lg tracking-tight" style={{ fontFamily: '"JMH Typewriter", "Courier New", Courier, monospace' }}>
                     <div className="w-6 h-6 bg-zinc-900 dark:bg-white rounded flex items-center justify-center text-white dark:text-black font-mono text-xs">
@@ -40,17 +38,8 @@ export default function App() {
                     Commentation
                   </div>
                   <div className="hidden md:flex items-center gap-6 text-sm font-medium text-zinc-600 dark:text-zinc-400">
-                    <a href="#" className="hover:text-zinc-900 dark:hover:text-white transition-colors">Documentation</a>
-                    <a href="https://github.com" target="_blank" className="hover:text-zinc-900 dark:hover:text-white transition-colors">GitHub</a>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <div className="hidden md:flex items-center gap-2 text-xs text-zinc-500 px-2 py-1 bg-zinc-100 dark:bg-zinc-900 rounded border border-zinc-200 dark:border-zinc-800">
-                       <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                       System Normal
-                    </div>
-                    <button className="bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 px-4 py-2 rounded-md text-sm font-medium hover:opacity-90 transition-colors">
-                      Sign In
-                    </button>
+                    <a href="https://github.com/joelbodker/commentation/blob/main/README.md" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-900 dark:hover:text-white transition-colors">Documentation</a>
+                    <a href="https://github.com/joelbodker/commentation" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-900 dark:hover:text-white transition-colors">GitHub</a>
                   </div>
                 </div>
               </nav>
@@ -72,8 +61,8 @@ export default function App() {
                          Commentation
                       </div>
                       <div className="flex gap-6 text-xs text-zinc-500 dark:text-zinc-500">
-                         <a href="#" className="hover:text-zinc-900 dark:hover:text-zinc-300">Docs</a>
-                         <a href="#" className="hover:text-zinc-900 dark:hover:text-zinc-300">API</a>
+                         <a href="https://github.com/joelbodker/commentation/blob/main/README.md" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-900 dark:hover:text-zinc-300">Docs</a>
+                         <a href="https://github.com/joelbodker/commentation" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-900 dark:hover:text-zinc-300">API</a>
                          <a href="#" className="hover:text-zinc-900 dark:hover:text-zinc-300">Privacy</a>
                          <a href="#" className="hover:text-zinc-900 dark:hover:text-zinc-300">Terms</a>
                       </div>
@@ -84,7 +73,10 @@ export default function App() {
                 </footer>
               </main>
 
-            </CommentationWidget>
+            {/* Commentation overlay - minimized (pillbox) by default */}
+            <div id="fig-comments-root">
+              <Overlay projectId="landing" />
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

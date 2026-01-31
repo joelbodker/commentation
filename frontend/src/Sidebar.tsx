@@ -837,7 +837,7 @@ export function Sidebar({
               <label className={styles.nameLabel} htmlFor="fig-comments-your-name">
                 Your name
               </label>
-              <div className={styles.nameInputRow}>
+              <div className={`${styles.nameInputRow} ${showNameRequiredPrompt ? styles.nameInputRowHighlight : ""}`}>
                 <input
                   id="fig-comments-your-name"
                   type="text"
