@@ -435,42 +435,39 @@
   align-items: center;
 }
 
-/* Chasing blue stroke around name entry field when name required */
-.nameInputRowHighlight {
+.nameInputWrapper {
+  flex: 1;
   position: relative;
 }
 
-.nameInputRowHighlight::after {
-  content: "";
+/* Chasing blue stroke around name entry field when name required */
+.nameInputWrapperHighlight {
+  position: relative;
+}
+
+.nameInputChaseStroke {
   position: absolute;
   inset: -2px;
-  border-radius: 8px;
-  padding: 2px;
-  background: conic-gradient(
-    from 0deg,
-    transparent 0deg 240deg,
-    #0d99ff 270deg,
-    transparent 300deg
-  );
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  animation: nameInputChase 1.5s linear infinite;
+  width: calc(100% + 4px);
+  height: calc(100% + 4px);
   pointer-events: none;
-  z-index: 0;
+  color: #0d99ff;
 }
 
-.nameInputRowHighlight .nameInput,
-.nameInputRowHighlight .nameOkBtn {
-  position: relative;
-  z-index: 1;
+.nameInputChaseStroke rect {
+  stroke-dasharray: 20 380;
+  animation: nameInputChase 1.5s linear infinite;
 }
 
 @keyframes nameInputChase {
   to {
-    transform: rotate(360deg);
+    stroke-dashoffset: -400;
   }
+}
+
+.nameInputWrapper .nameInput {
+  position: relative;
+  z-index: 1;
 }
 
 .nameInputRow .nameInput {
@@ -1426,13 +1423,8 @@
   }
 }
 
-.sidebar[data-theme="dark"] .nameInputRowHighlight::after {
-  background: conic-gradient(
-    from 0deg,
-    transparent 0deg 240deg,
-    #5eb8ff 270deg,
-    transparent 300deg
-  );
+.sidebar[data-theme="dark"] .nameInputChaseStroke {
+  color: #5eb8ff;
 }
 
 .sidebar[data-theme="dark"] .assignSelect,

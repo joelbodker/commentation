@@ -837,15 +837,22 @@ export function Sidebar({
               <label className={styles.nameLabel} htmlFor="fig-comments-your-name">
                 Your name
               </label>
-              <div className={`${styles.nameInputRow} ${showNameRequiredPrompt ? styles.nameInputRowHighlight : ""}`}>
-                <input
-                  id="fig-comments-your-name"
-                  type="text"
-                  className={styles.nameInput}
-                  value={createdBy}
-                  onChange={(e) => onCreatedByChange(e.target.value)}
-                  placeholder="Name or email"
-                />
+              <div className={styles.nameInputRow}>
+                <div className={`${styles.nameInputWrapper} ${showNameRequiredPrompt ? styles.nameInputWrapperHighlight : ""}`}>
+                  {showNameRequiredPrompt && (
+                    <svg className={styles.nameInputChaseStroke} viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden>
+                      <rect x="1" y="1" width="98" height="98" rx="6" fill="none" stroke="currentColor" strokeWidth="2" />
+                    </svg>
+                  )}
+                  <input
+                    id="fig-comments-your-name"
+                    type="text"
+                    className={styles.nameInput}
+                    value={createdBy}
+                    onChange={(e) => onCreatedByChange(e.target.value)}
+                    placeholder="Name or email"
+                  />
+                </div>
                 <button
                   type="button"
                   className={styles.nameOkBtn}
