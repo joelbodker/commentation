@@ -15,6 +15,7 @@ import styles from "./Overlay.module.css";
 const NAME_STORAGE_KEY_PREFIX = "fig-comments-name-";
 const THEME_STORAGE_KEY = "commentation-theme";
 const ORDER_STORAGE_KEY_PREFIX = "commentation-order-";
+const HINT_DISMISSED_KEY_PREFIX = "commentation-hint-dismissed-";
 
 /**
  * Click marker - blue circle that appears where you click.
@@ -60,7 +61,26 @@ export type Theme = "light" | "dark";
 
 function OverlayInner() {
   const { projectId, hintText } = useConfig();
-  const [hintDismissed, setHintDismissed] = useState(false);
+  const [hintDismissed, setHintDismissed] = useState(() => {
+    if (typeof window === "undefined" || !hintText) return false;
+    try {
+      const key = HINT_DISMISSED_KEY_PREFIX + projectId;
+      return sessionStorage.getItem(key) === "1";
+    } catch {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    if (hintDismissed && hintText) {
+      try {
+        sessionStorage.setItem(HINT_DISMISSED_KEY_PREFIX + projectId, "1");
+      } catch {
+        /* ignore */
+      }
+    }
+  }, [hintDismissed, hintText, projectId]);
+
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [theme, setTheme] = useState<Theme>(() => {
     if (typeof window === "undefined") return "dark";
