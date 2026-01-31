@@ -68,7 +68,7 @@
   font-size: 12px;
   font-weight: 600;
   color: #333;
-  font-family: "JMH Typewriter", "Courier New", Courier, monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   letter-spacing: 0.02em;
 }
 
