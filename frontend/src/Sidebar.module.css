@@ -980,9 +980,24 @@
 
 .commentHeader {
   display: flex;
-  align-items: baseline;
+  align-items: center;
+  justify-content: space-between;
   gap: 8px;
   margin-bottom: 4px;
+}
+
+.commentAuthorRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.commentAvatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  background: linear-gradient(135deg, #8b5cf6 0%, #0d99ff 100%);
+  flex-shrink: 0;
 }
 
 .commentAuthor {
@@ -994,6 +1009,7 @@
 .commentTime {
   font-size: 11px;
   color: #888;
+  flex-shrink: 0;
 }
 
 .commentBody {
@@ -1627,12 +1643,19 @@
   border-bottom-color: #333;
 }
 
+.sidebar[data-theme="dark"] .commentAvatar {
+  background: linear-gradient(135deg, #8b5cf6 0%, #5eb8ff 100%);
+}
+
 .sidebar[data-theme="dark"] .commentAuthor {
   color: #e0e0e0;
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }
 
 .sidebar[data-theme="dark"] .commentTime {
   color: #808080;
+  font-size: 11px;
 }
 
 .sidebar[data-theme="dark"] .detailActions {

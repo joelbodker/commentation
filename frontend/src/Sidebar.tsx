@@ -416,7 +416,12 @@ function ThreadDetail({
         {comments.map((c) => (
           <article key={c.id} className={styles.comment}>
             <header className={styles.commentHeader}>
-              <span className={styles.commentAuthor}>{c.createdBy}</span>
+              <div className={styles.commentAuthorRow}>
+                <div className={styles.commentAvatar} aria-hidden />
+                <span className={styles.commentAuthor}>
+                  {(c.createdBy || "Anonymous").toUpperCase().replace(/\s+/g, "_")}
+                </span>
+              </div>
               <time className={styles.commentTime} dateTime={c.createdAt}>
                 {formatDateTime(c.createdAt)}
               </time>

@@ -146,7 +146,7 @@ export function Hero() {
                <div className="absolute top-16 left-16 z-30 w-64 bg-white dark:bg-zinc-900 rounded-lg shadow-xl border border-zinc-200 dark:border-zinc-700 p-3">
                  <div className="flex items-center gap-2 mb-2">
                    <div className="w-5 h-5 rounded bg-gradient-to-br from-purple-500 to-blue-500"></div>
-                   <span className="text-xs font-semibold text-zinc-900 dark:text-white">alex_dev</span>
+                   <span className="text-xs font-semibold text-zinc-900 dark:text-white tracking-wide">ALEX_DEV</span>
                    <span className="text-[10px] text-zinc-400 ml-auto">now</span>
                  </div>
                  <p className="text-xs text-zinc-600 dark:text-zinc-300 mb-2">The padding on this component doesn't match the design spec.</p>
