@@ -2,16 +2,29 @@
 @import './tailwind.css';
 @import './theme.css';
 
-/* Slow subtle pulse for tagline */
-@keyframes taglinePulse {
+/* Slow subtle color shift for tagline - zinc to soft blue-gray */
+@keyframes taglineColor {
   0%, 100% {
-    opacity: 0.85;
+    color: #52525b;
   }
   50% {
-    opacity: 1;
+    color: #64748b;
+  }
+}
+
+@keyframes taglineColorDark {
+  0%, 100% {
+    color: #d4d4d8;
+  }
+  50% {
+    color: #94a3b8;
   }
 }
 
 .tagline-gradient {
-  animation: taglinePulse 4s ease-in-out infinite;
+  animation: taglineColor 5s ease-in-out infinite;
+}
+
+.dark .tagline-gradient {
+  animation: taglineColorDark 5s ease-in-out infinite;
 }
