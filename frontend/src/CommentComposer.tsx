@@ -89,7 +89,7 @@ export function CommentComposer({
         <div className={styles.composerHeader}>
           <div className={styles.composerAvatar} aria-hidden />
           <span className={styles.composerAuthor}>
-            {(createdBy || "Anonymous").toLowerCase().replace(/\s+/g, "_")}
+            {(createdBy || "Anonymous").toUpperCase().replace(/\s+/g, "_")}
           </span>
         </div>
         <textarea
