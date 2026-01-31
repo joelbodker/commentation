@@ -92,22 +92,27 @@ export async function createThread(
     selector: string;
     xPercent: number;
     yPercent: number;
+    offsetRatioX?: number;
+    offsetRatioY?: number;
     body: string;
     createdBy: string;
   }
 ): Promise<Thread> {
   const base = baseUrl();
   const url = `${base}/api/projects/${encodeURIComponent(projectId)}/threads`;
+  const body: Record<string, unknown> = {
+    pageUrl,
+    selector: params.selector,
+    xPercent: params.xPercent,
+    yPercent: params.yPercent,
+    body: params.body,
+    createdBy: params.createdBy,
+  };
+  if (typeof params.offsetRatioX === "number") body.offsetRatioX = params.offsetRatioX;
+  if (typeof params.offsetRatioY === "number") body.offsetRatioY = params.offsetRatioY;
   return fetchJson<Thread>(url, {
     method: "POST",
-    body: JSON.stringify({
-      pageUrl,
-      selector: params.selector,
-      xPercent: params.xPercent,
-      yPercent: params.yPercent,
-      body: params.body,
-      createdBy: params.createdBy,
-    }),
+    body: JSON.stringify(body),
   });
 }
 

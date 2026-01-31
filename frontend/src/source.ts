@@ -37,6 +37,8 @@ export async function createThread(
     selector: string;
     xPercent: number;
     yPercent: number;
+    offsetRatioX?: number;
+    offsetRatioY?: number;
     body: string;
     createdBy: string;
   }

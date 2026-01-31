@@ -6,7 +6,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { ConfigProvider, useConfig } from "./config";
 import * as source from "./source";
 import type { ThreadListItem } from "./store";
-import { scrollToPinY, buildSelector, eventToPercent } from "./anchoring";
+import { scrollToPinY, buildSelector, percentToAbsoluteStyle } from "./anchoring";
 import { PinsLayer } from "./PinsLayer";
 import { Sidebar } from "./Sidebar";
 import { CommentComposer } from "./CommentComposer";
@@ -76,8 +76,17 @@ function OverlayInner() {
   const [commentMode, setCommentMode] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null);
-  const [pendingPin, setPendingPin] = useState<{ x: number; y: number; selector: string } | null>(null);
+  const [pendingPin, setPendingPin] = useState<{
+    selector: string;
+    offsetRatioX: number;
+    offsetRatioY: number;
+    pageX: number;
+    pageY: number;
+    scrollX: number;
+    scrollY: number;
+  } | null>(null);
   const [hoveredResolvedThreadId, setHoveredResolvedThreadId] = useState<string | null>(null);
+  const [scrollPos, setScrollPos] = useState({ x: 0, y: 0 });
   const [createdBy, setCreatedBy] = useState(() => {
     if (typeof window === "undefined") return "";
     try {
@@ -210,11 +219,21 @@ function OverlayInner() {
       }
       const el = e.target as Element;
       const selector = buildSelector(el);
-      // Store clientX/clientY for marker & composer; use for xPercent/yPercent in post
+      const rect = el.getBoundingClientRect();
+      const w = Math.max(rect.width, 1);
+      const h = Math.max(rect.height, 1);
+      const offsetRatioX = (e.clientX - rect.left) / w;
+      const offsetRatioY = (e.clientY - rect.top) / h;
+      const scrollX = window.scrollX;
+      const scrollY = window.scrollY;
       setPendingPin({
-        x: e.clientX,
-        y: e.clientY,
         selector,
+        offsetRatioX,
+        offsetRatioY,
+        pageX: e.clientX + scrollX,
+        pageY: e.clientY + scrollY,
+        scrollX,
+        scrollY,
       });
       // If name isn't saved, open sidebar so they can enter it; composer shows after they save.
       if (!createdBy.trim()) setSidebarOpen(true);
@@ -227,6 +246,41 @@ function OverlayInner() {
     window.addEventListener("click", handlePageClick);
     return () => window.removeEventListener("click", handlePageClick);
   }, [commentMode, handlePageClick]);
+
+  // Re-render on scroll so ClickMarker and CommentComposer stay aligned with page content
+  useEffect(() => {
+    const handleScroll = () => setScrollPos({ x: window.scrollX, y: window.scrollY });
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll(); // initial
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // When pendingPin exists, also listen to scroll on the clicked element's scroll ancestors
+  // (handles divs with overflow:scroll that window.scrollY doesn't capture)
+  useEffect(() => {
+    if (!pendingPin) return;
+    const el = document.querySelector(pendingPin.selector);
+    if (!el) return;
+    const scrollParents: (Window | Element)[] = [window];
+    let parent: Element | null = el.parentElement;
+    while (parent && parent !== document.body) {
+      const style = getComputedStyle(parent);
+      const overflowY = style.overflowY || style.overflow;
+      if (overflowY === "auto" || overflowY === "scroll" || overflowY === "overlay") {
+        scrollParents.push(parent);
+      }
+      parent = parent.parentElement;
+    }
+    const handleScroll = () => setScrollPos((p) => ({ ...p }));
+    scrollParents.forEach((target) => {
+      target.addEventListener("scroll", handleScroll, { passive: true });
+    });
+    return () => {
+      scrollParents.forEach((target) => {
+        target.removeEventListener("scroll", handleScroll);
+      });
+    };
+  }, [pendingPin?.selector]);
 
   // Show crosshair cursor when in comment mode so it's obvious you're placing a pin.
   // When name-required popup shows (pendingPin without name), revert to default cursor.
@@ -251,13 +305,33 @@ function OverlayInner() {
   const handleComposerPost = useCallback(
     async (body: string, name: string) => {
       if (!pendingPin) return;
-      const xPercent = (pendingPin.x / window.innerWidth) * 100;
-      const yPercent = (pendingPin.y / window.innerHeight) * 100;
+      let viewportX: number;
+      let viewportY: number;
+      try {
+        const el = document.querySelector(pendingPin.selector);
+        if (el) {
+          const rect = el.getBoundingClientRect();
+          const w = Math.max(rect.width, 1);
+          const h = Math.max(rect.height, 1);
+          viewportX = rect.left + pendingPin.offsetRatioX * w;
+          viewportY = rect.top + pendingPin.offsetRatioY * h;
+        } else {
+          viewportX = pendingPin.pageX - pendingPin.scrollX;
+          viewportY = pendingPin.pageY - pendingPin.scrollY;
+        }
+      } catch {
+        viewportX = pendingPin.pageX - pendingPin.scrollX;
+        viewportY = pendingPin.pageY - pendingPin.scrollY;
+      }
+      const xPercent = (viewportX / window.innerWidth) * 100;
+      const yPercent = (viewportY / window.innerHeight) * 100;
       try {
         const thread = await source.createThread(projectId, pageUrl, {
           selector: pendingPin.selector,
           xPercent,
           yPercent,
+          offsetRatioX: pendingPin.offsetRatioX,
+          offsetRatioY: pendingPin.offsetRatioY,
           body,
           createdBy: name,
         });
@@ -442,6 +516,38 @@ function OverlayInner() {
     ? threads.find((t) => t.id === hoveredResolvedThreadId)
     : null;
 
+  // rAF loop: pins/markers must track content during overscroll (bounce) when scroll events don't fire
+  const needsLayoutTick =
+    openThreadsForPins.length > 0 || !!pendingPin || !!(hoveredResolvedThreadId && statusFilter === "resolved");
+  useEffect(() => {
+    if (!needsLayoutTick) return;
+    let rafId: number;
+    const tick = () => {
+      setScrollPos((p) => ({ ...p }));
+      rafId = requestAnimationFrame(tick);
+    };
+    rafId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafId);
+  }, [needsLayoutTick]);
+
+  // Disable overscroll when pins are visible: per CSS spec, fixed elements stay put during overscroll
+  // and getBoundingClientRect() doesn't report it—so pins can't track. Disabling overscroll fixes alignment.
+  const needsOverscrollDisabled =
+    openThreadsForPins.length > 0 || !!pendingPin || !!(hoveredResolvedThreadId && statusFilter === "resolved");
+  useEffect(() => {
+    if (!needsOverscrollDisabled) return;
+    const html = document.documentElement;
+    const body = document.body;
+    const prevHtml = html.style.overscrollBehaviorY;
+    const prevBody = body.style.overscrollBehaviorY;
+    html.style.overscrollBehaviorY = "none";
+    body.style.overscrollBehaviorY = "none";
+    return () => {
+      html.style.overscrollBehaviorY = prevHtml;
+      body.style.overscrollBehaviorY = prevBody;
+    };
+  }, [needsOverscrollDisabled]);
+
   const handleThemeChange = useCallback((next: Theme) => {
     setTheme(next);
     try {
@@ -487,6 +593,29 @@ function OverlayInner() {
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, [commentMode]);
 
+  // Compute viewport position for pending pin (anchored to element, works with any scroll container)
+  const pendingPinViewport = useMemo(() => {
+    if (!pendingPin) return null;
+    try {
+      const el = document.querySelector(pendingPin.selector);
+      if (el) {
+        const rect = el.getBoundingClientRect();
+        const w = Math.max(rect.width, 1);
+        const h = Math.max(rect.height, 1);
+        return {
+          x: rect.left + pendingPin.offsetRatioX * w,
+          y: rect.top + pendingPin.offsetRatioY * h,
+        };
+      }
+    } catch {
+      /* selector invalid */
+    }
+    return {
+      x: pendingPin.pageX - scrollPos.x,
+      y: pendingPin.pageY - scrollPos.y,
+    };
+  }, [pendingPin, scrollPos]);
+
   return (
     <div className={styles.wrapper} data-theme={theme}>
       <div className={styles.pinsLayer} aria-hidden>
@@ -496,16 +625,19 @@ function OverlayInner() {
           onSelect={handleSelectThread}
         />
       </div>
-      {/* Click marker - positioned at click location */}
-      {pendingPin && <ClickMarker x={pendingPin.x} y={pendingPin.y} />}
+      {/* Click marker - anchored to clicked element so it sticks regardless of scroll container */}
+      {pendingPinViewport && <ClickMarker x={pendingPinViewport.x} y={pendingPinViewport.y} />}
       {/* When hovering a resolved task in the sidebar, show a dot at its original pin location. */}
       {hoveredResolvedThread && statusFilter === "resolved" && (
         <div
           className={styles.resolvedHoverDot}
-          style={{
-            left: `${hoveredResolvedThread.xPercent}vw`,
-            top: `${hoveredResolvedThread.yPercent}vh`,
-          }}
+          style={percentToAbsoluteStyle(
+            hoveredResolvedThread.xPercent,
+            hoveredResolvedThread.yPercent,
+            hoveredResolvedThread.selector,
+            hoveredResolvedThread.offsetRatioX,
+            hoveredResolvedThread.offsetRatioY
+          )}
           aria-hidden
         />
       )}
@@ -659,11 +791,11 @@ function OverlayInner() {
             if (!trimmedName) return null;
             try {
               const savedName = localStorage.getItem(NAME_STORAGE_KEY_PREFIX + projectId);
-              if (savedName === trimmedName) {
+              if (savedName === trimmedName && pendingPinViewport) {
                 return (
                   <CommentComposer
-                    x={pendingPin.x}
-                    y={pendingPin.y}
+                    x={pendingPinViewport.x}
+                    y={pendingPinViewport.y}
                     createdBy={createdBy}
                     onPost={handleComposerPost}
                     onCancel={handleComposerCancel}

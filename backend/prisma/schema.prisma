@@ -25,6 +25,8 @@ model Thread {
   selector    String
   xPercent    Float
   yPercent    Float
+  offsetRatioX Float?
+  offsetRatioY Float?
   status      String    @default("OPEN") // OPEN | RESOLVED (SQLite has no enums)
   createdBy   String
   createdAt   DateTime  @default(now())

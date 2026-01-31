@@ -65,37 +65,43 @@ export function percentToFixedStyle(
 }
 
 /**
- * Convert viewport-relative percentages to page-relative positions that scroll with the page.
- * Since pinsLayer is fixed, we need to calculate the position relative to the fixed container.
- * 
- * The stored xPercent/yPercent represent viewport position at creation time.
- * To make pins scroll with content, we calculate: viewport_position - scroll_offset.
- * This makes pins appear to move with the page as you scroll.
+ * Convert thread anchor data to viewport pixel positions for the fixed pins overlay.
+ * Pins must appear exactly where the user clicked, anchored to the element.
+ *
+ * When selector resolves: use element rect + offsetRatioX/Y for exact click position.
+ * offsetRatioX/Y are 0–1 (click position within element). Fall back to center when missing.
  */
 export function percentToAbsoluteStyle(
   xPercent: number,
   yPercent: number,
-  selector?: string
+  selector?: string,
+  offsetRatioX?: number,
+  offsetRatioY?: number
 ): { left: string; top: string } {
-  // Convert viewport percentages to current viewport pixels
+  if (selector) {
+    try {
+      const el = document.querySelector(selector);
+      if (el) {
+        const rect = el.getBoundingClientRect();
+        const w = Math.max(rect.width, 1);
+        const h = Math.max(rect.height, 1);
+        const ox = typeof offsetRatioX === "number" ? offsetRatioX : 0.5;
+        const oy = typeof offsetRatioY === "number" ? offsetRatioY : 0.5;
+        // Pin CSS uses margin-left/top: -14px for centering, so left/top should be the center point
+        const left = rect.left + ox * w;
+        const top = rect.top + oy * h;
+        return { left: `${left}px`, top: `${top}px` };
+      }
+    } catch {
+      /* selector invalid or element not found */
+    }
+  }
+
   const viewportX = (xPercent / 100) * window.innerWidth;
   const viewportY = (yPercent / 100) * window.innerHeight;
-  
-  // To make pins scroll with the page content:
-  // - At creation: pin was at viewport position (viewportX, viewportY) when scroll was (sx0, sy0)
-  // - Page position = viewportX + sx0, viewportY + sy0 (constant)
-  // - At render: to show at same page position, viewport position should be: pageX - scrollX
-  // - Since we don't know sx0, we approximate: assume pin should stay at same viewport position
-  // - But to make it scroll, we subtract current scroll offset
-  // This makes pins move opposite to scroll direction, appearing to scroll with content
-  
   const pinX = viewportX - window.scrollX;
   const pinY = viewportY - window.scrollY;
-  
-  return {
-    left: `${pinX}px`,
-    top: `${pinY}px`,
-  };
+  return { left: `${pinX}px`, top: `${pinY}px` };
 }
 
 /**

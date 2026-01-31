@@ -18,21 +18,30 @@ export function PinsLayer({
   selectedThreadId: string | null;
   onSelect: (id: string) => void;
 }) {
-  const [, setScrollPosition] = useState({ x: 0, y: 0 });
+  const [, setLayoutTick] = useState(0);
 
-  // Recalculate pin positions on scroll
+  // rAF loop: re-read getBoundingClientRect every frame so pins track content on scroll
   useEffect(() => {
-    const handleScroll = () => {
-      setScrollPosition({ x: window.scrollX, y: window.scrollY });
+    if (threads.length === 0) return;
+    let rafId: number;
+    const tick = () => {
+      setLayoutTick((t) => t + 1);
+      rafId = requestAnimationFrame(tick);
     };
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+    rafId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafId);
+  }, [threads.length]);
 
   return (
     <>
       {threads.map((t) => {
-        const style = percentToAbsoluteStyle(t.xPercent, t.yPercent, t.selector);
+        const style = percentToAbsoluteStyle(
+          t.xPercent,
+          t.yPercent,
+          t.selector,
+          t.offsetRatioX,
+          t.offsetRatioY
+        );
         const isSelected = t.id === selectedThreadId;
         return (
           <button

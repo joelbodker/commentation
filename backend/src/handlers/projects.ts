@@ -49,6 +49,8 @@ export async function listThreads(req: Request, res: Response): Promise<void> {
       selector: t.selector,
       xPercent: t.xPercent,
       yPercent: t.yPercent,
+      offsetRatioX: (t as { offsetRatioX?: number }).offsetRatioX ?? undefined,
+      offsetRatioY: (t as { offsetRatioY?: number }).offsetRatioY ?? undefined,
       status: t.status,
       createdBy: t.createdBy,
       createdAt: t.createdAt,
@@ -75,6 +77,8 @@ interface CreateThreadBody {
   selector: string;
   xPercent: number;
   yPercent: number;
+  offsetRatioX?: number;
+  offsetRatioY?: number;
   body: string;
   createdBy: string;
 }
@@ -87,7 +91,7 @@ export async function createThread(req: Request, res: Response): Promise<void> {
       return;
     }
     const body = req.body as CreateThreadBody;
-    const { pageUrl, selector, xPercent, yPercent, body: commentBody, createdBy } = body;
+    const { pageUrl, selector, xPercent, yPercent, offsetRatioX, offsetRatioY, body: commentBody, createdBy } = body;
 
     if (!pageUrl || selector == null || xPercent == null || yPercent == null || !commentBody || !createdBy) {
       res.status(400).json({
@@ -113,6 +117,8 @@ export async function createThread(req: Request, res: Response): Promise<void> {
           selector,
           xPercent: Number(xPercent),
           yPercent: Number(yPercent),
+          offsetRatioX: typeof offsetRatioX === "number" ? offsetRatioX : undefined,
+          offsetRatioY: typeof offsetRatioY === "number" ? offsetRatioY : undefined,
           status: "OPEN",
           createdBy,
           comments: {

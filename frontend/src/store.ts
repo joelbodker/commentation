@@ -20,6 +20,8 @@ export type Thread = {
   selector: string;
   xPercent: number;
   yPercent: number;
+  offsetRatioX?: number;
+  offsetRatioY?: number;
   status: ThreadStatus;
   createdBy: string;
   createdAt: string;
@@ -87,6 +89,8 @@ export function createThread(
     selector: string;
     xPercent: number;
     yPercent: number;
+    offsetRatioX?: number;
+    offsetRatioY?: number;
     body: string;
     createdBy: string;
   }
@@ -108,6 +112,8 @@ export function createThread(
     selector: params.selector,
     xPercent: params.xPercent,
     yPercent: params.yPercent,
+    offsetRatioX: params.offsetRatioX,
+    offsetRatioY: params.offsetRatioY,
     status: "OPEN",
     createdBy: params.createdBy,
     createdAt: now,

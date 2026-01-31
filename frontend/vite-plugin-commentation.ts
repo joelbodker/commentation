@@ -28,6 +28,8 @@ type Thread = {
   selector: string;
   xPercent: number;
   yPercent: number;
+  offsetRatioX?: number;
+  offsetRatioY?: number;
   status: string;
   createdBy: string;
   createdAt: string;
@@ -249,10 +251,12 @@ export function commentationPlugin(): Plugin {
               selector?: string;
               xPercent?: number;
               yPercent?: number;
+              offsetRatioX?: number;
+              offsetRatioY?: number;
               body?: string;
               createdBy?: string;
             };
-            const { pageUrl, selector, xPercent, yPercent, body: commentBody, createdBy } = body;
+            const { pageUrl, selector, xPercent, yPercent, offsetRatioX, offsetRatioY, body: commentBody, createdBy } = body;
             if (!pageUrl || selector == null || xPercent == null || yPercent == null || !commentBody || !createdBy) {
               return sendJson(400, { error: "Required: pageUrl, selector, xPercent, yPercent, body, createdBy" });
             }
@@ -268,6 +272,8 @@ export function commentationPlugin(): Plugin {
               selector,
               xPercent: Number(xPercent),
               yPercent: Number(yPercent),
+              offsetRatioX: typeof offsetRatioX === "number" ? offsetRatioX : undefined,
+              offsetRatioY: typeof offsetRatioY === "number" ? offsetRatioY : undefined,
               status: "OPEN",
               createdBy,
               createdAt: now,

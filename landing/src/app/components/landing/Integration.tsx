@@ -1,9 +1,34 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Terminal, Copy, Check } from 'lucide-react';
 import { useState } from 'react';
+import { motion, useMotionValue, useSpring, useTransform } from 'motion/react';
 
 export function Integration() {
   const [copied, setCopied] = useState(false);
+  const codeRef = useRef<HTMLDivElement>(null);
+
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const xSpring = useSpring(x, { stiffness: 300, damping: 25 });
+  const ySpring = useSpring(y, { stiffness: 300, damping: 25 });
+  const rotateX = useTransform(ySpring, [-0.5, 0.5], ["1.2deg", "-1.2deg"]);
+  const rotateY = useTransform(xSpring, [-0.5, 0.5], ["-1.2deg", "1.2deg"]);
+  const scale = useTransform(
+    [xSpring, ySpring],
+    ([sx, sy]) => 1 + Math.abs(sx) * 0.003 + Math.abs(sy) * 0.003
+  );
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!codeRef.current) return;
+    const rect = codeRef.current.getBoundingClientRect();
+    x.set((e.clientX - rect.left) / rect.width - 0.5);
+    y.set((e.clientY - rect.top) / rect.height - 0.5);
+  };
+
+  const handleMouseLeave = () => {
+    x.set(0);
+    y.set(0);
+  };
 
   const codeToCopy = `// 1. Copy vite-plugin-commentation.ts from Commentation repo into your project
 // 2. vite.config.ts
@@ -58,8 +83,19 @@ export default defineConfig({
           </div>
         </div>
 
-        <div className="flex-1 w-full max-w-xl">
-          <div className="rounded-xl overflow-hidden bg-zinc-100 dark:bg-[#0d1117] border border-zinc-200 dark:border-zinc-800 shadow-2xl">
+        <div className="flex-1 w-full max-w-xl [perspective:1000px]">
+          <motion.div
+            ref={codeRef}
+            onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseLeave}
+            style={{
+              rotateX,
+              rotateY,
+              scale,
+              transformStyle: "preserve-3d",
+            }}
+            className="rounded-xl overflow-hidden bg-zinc-100 dark:bg-[#0d1117] border border-zinc-200 dark:border-zinc-800 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.6)]"
+          >
             <div className="flex items-center justify-between px-4 py-3 bg-zinc-200 dark:bg-[#161b22] border-b border-zinc-200 dark:border-zinc-800">
                <div className="flex items-center gap-2">
                  <Terminal className="w-4 h-4 text-zinc-500 dark:text-zinc-400" />
@@ -97,7 +133,7 @@ export default defineConfig({
                 </div>
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
     </section>

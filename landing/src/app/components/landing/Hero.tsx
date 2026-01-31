@@ -65,7 +65,7 @@ export function Hero() {
             <div className="flex flex-col sm:flex-row items-center gap-4">
               <button
                 onClick={handleCopy}
-                className="h-12 min-w-[260px] px-8 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-lg font-medium hover:opacity-90 transition-all flex items-center justify-center gap-2 overflow-hidden whitespace-nowrap"
+                className="h-12 min-w-[260px] px-8 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-lg font-medium hover:opacity-90 hover:scale-[1.03] transform-gpu transition-[transform] duration-350 ease-[cubic-bezier(0.4,0,0.2,1)] flex items-center justify-center gap-2 overflow-hidden whitespace-nowrap"
               >
                 <AnimatePresence mode="wait">
                   {copied ? (
@@ -95,7 +95,7 @@ export function Hero() {
                   )}
                 </AnimatePresence>
               </button>
-              <a href="https://github.com/joelbodker/commentation" target="_blank" rel="noopener noreferrer" className="h-12 px-8 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white border border-zinc-200 dark:border-zinc-800 rounded-lg font-medium hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all flex items-center gap-2">
+              <a href="https://github.com/joelbodker/commentation" target="_blank" rel="noopener noreferrer" className="h-12 px-8 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white border border-zinc-200 dark:border-zinc-800 rounded-lg font-medium hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:scale-[1.03] transform-gpu transition-[transform] duration-350 ease-[cubic-bezier(0.4,0,0.2,1)] flex items-center gap-2">
                 <Github className="w-4 h-4" /> View on GitHub
               </a>
             </div>
