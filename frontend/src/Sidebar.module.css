@@ -452,11 +452,12 @@
   height: calc(100% + 4px);
   pointer-events: none;
   color: #0d99ff;
+  opacity: 0.85;
 }
 
 .nameInputChaseStroke rect {
-  stroke-dasharray: 20 380;
-  animation: nameInputChase 1.5s linear infinite;
+  stroke-dasharray: 12 388;
+  animation: nameInputChase 4s linear infinite;
 }
 
 @keyframes nameInputChase {
@@ -1425,6 +1426,7 @@
 
 .sidebar[data-theme="dark"] .nameInputChaseStroke {
   color: #5eb8ff;
+  opacity: 0.9;
 }
 
 .sidebar[data-theme="dark"] .assignSelect,
