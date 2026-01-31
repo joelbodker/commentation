@@ -59,7 +59,7 @@ export function Hero() {
               <br />
               Stored as JSON.
               <br />
-              <span className="font-medium tagline-gradient">Your team&apos;s feedback, finally in context.</span>
+              <span className="font-medium text-zinc-700 dark:text-zinc-300 tagline-gradient">Your team&apos;s feedback, finally in context.</span>
             </p>
 
             <div className="flex flex-col sm:flex-row items-center gap-4">
