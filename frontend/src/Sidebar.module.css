@@ -445,22 +445,39 @@
   position: relative;
 }
 
-.nameInputWrapperHighlight::after {
+.nameInputWrapperHighlight::before {
   content: "";
   position: absolute;
-  inset: -2px;
-  border-radius: 8px;
-  border: 2px solid transparent;
-  border-top-color: #0d99ff;
+  inset: 0;
+  border-radius: 6px;
+  padding: 2px;
+  background: linear-gradient(
+    var(--angle, 0deg),
+    transparent 0%,
+    transparent 70%,
+    #0d99ff 85%,
+    transparent 100%
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
   animation: nameInputRingSpin 0.8s linear infinite;
   pointer-events: none;
-  z-index: 0;
+  z-index: 10;
 }
 
 @keyframes nameInputRingSpin {
   to {
+    --angle: 360deg;
     transform: rotate(360deg);
   }
+}
+
+@property --angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
 }
 
 .nameInputWrapper .nameInput {
@@ -1421,8 +1438,14 @@
   }
 }
 
-.sidebar[data-theme="dark"] .nameInputWrapperHighlight::after {
-  border-top-color: #5eb8ff;
+.sidebar[data-theme="dark"] .nameInputWrapperHighlight::before {
+  background: linear-gradient(
+    var(--angle, 0deg),
+    transparent 0%,
+    transparent 70%,
+    #5eb8ff 85%,
+    transparent 100%
+  );
 }
 
 .sidebar[data-theme="dark"] .assignSelect,
