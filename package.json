@@ -1,15 +1,17 @@
 {
-  "name": "commentation",
+  "name": "commentation-monorepo",
   "version": "0.1.0",
   "private": true,
   "description": "Pin-based contextual comments overlay for websites",
-  "workspaces": ["frontend", "backend"],
+  "workspaces": ["frontend", "backend", "landing", "packages/commentation"],
   "scripts": {
     "dev:frontend": "npm run dev --prefix frontend",
     "dev:backend": "npm run dev --prefix backend",
     "dev": "npm run dev:frontend",
     "build:frontend": "npm run build --prefix frontend",
     "build:backend": "npm run build --prefix backend",
+    "build:landing": "BASE_URL=/ npm run build --prefix landing",
+    "build:package": "npm run build --prefix frontend && mkdir -p packages/commentation/dist && cp frontend/dist/embed.js packages/commentation/dist/",
     "build": "npm run build:frontend",
     "prisma:migrate:dev": "npm run prisma:migrate:dev --prefix backend",
     "prisma:generate": "npm run prisma:generate --prefix backend"
