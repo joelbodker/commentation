@@ -13,10 +13,6 @@
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
-.composerDark .label {
-  color: #a0a0a0;
-}
-
 .composerDark .textarea {
   background: #2d2d2d;
   border-color: #404040;
@@ -53,12 +49,33 @@
   color: #ff6b6b;
 }
 
-.label {
-  display: block;
-  font-size: 11px;
+.composerHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.composerAvatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  background: linear-gradient(135deg, #8b5cf6 0%, #0d99ff 100%);
+  flex-shrink: 0;
+}
+
+.composerAuthor {
+  font-size: 12px;
   font-weight: 600;
-  color: #666;
-  margin-bottom: 4px;
+  color: #333;
+}
+
+.composerDark .composerAvatar {
+  background: linear-gradient(135deg, #8b5cf6 0%, #5eb8ff 100%);
+}
+
+.composerDark .composerAuthor {
+  color: #e0e0e0;
 }
 
 .textarea {

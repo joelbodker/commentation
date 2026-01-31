@@ -86,7 +86,12 @@ export function CommentComposer({
       onClick={(e) => e.stopPropagation()}
     >
       <form onSubmit={handleSubmit}>
-        <label className={styles.label}>Comment</label>
+        <div className={styles.composerHeader}>
+          <div className={styles.composerAvatar} aria-hidden />
+          <span className={styles.composerAuthor}>
+            {(createdBy || "Anonymous").toLowerCase().replace(/\s+/g, "_")}
+          </span>
+        </div>
         <textarea
           className={styles.textarea}
           value={body}
