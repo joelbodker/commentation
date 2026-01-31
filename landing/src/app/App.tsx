@@ -54,7 +54,7 @@ export default function App() {
                 {/* Simple Footer */}
                 <footer className="py-12 px-6 border-t border-zinc-100 dark:border-zinc-800 bg-white dark:bg-black">
                    <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
-                      <div className="flex items-center gap-2 font-bold text-sm text-zinc-900 dark:text-white" style={{ fontFamily: '"JMH Typewriter", "Courier New", Courier, monospace' }}>
+                      <div className="flex items-center gap-2 font-light text-sm text-zinc-900 dark:text-white font-mono lowercase">
                          <div className="w-5 h-5 bg-zinc-900 dark:bg-white rounded flex items-center justify-center text-white dark:text-black font-mono text-[10px]">
                             C
                          </div>
