@@ -154,9 +154,10 @@ export function IntroAnimation({ onComplete }: IntroAnimationProps) {
           style={{
             fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
             fontSize: 'clamp(32px, 8vw, 72px)',
-            fontWeight: 300,
+            fontWeight: 200,
             color: '#e8e8e8',
             letterSpacing: '0.02em',
+            textTransform: 'uppercase',
             userSelect: 'none',
             position: 'relative',
             display: 'inline-block',
