@@ -152,7 +152,7 @@ export function IntroAnimation({ onComplete }: IntroAnimationProps) {
           ref={titleRef}
           initial={{ opacity: 1 }}
           style={{
-            fontFamily: '"JMH Typewriter", "Courier New", Courier, monospace',
+            fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
             fontSize: 'clamp(32px, 8vw, 72px)',
             fontWeight: 400,
             color: '#e8e8e8',
