@@ -51,7 +51,15 @@ export function Hero() {
             </h1>
             
             <p className="text-lg text-zinc-600 dark:text-zinc-400 mb-10 leading-relaxed max-w-xl">
-              The missing overlay for your preview deployments. Drop comments directly on DOM elements. Syncs with GitHub Issues. Stored as JSON.
+              The missing overlay for your preview deployments.
+              <br />
+              Drop comments directly on DOM elements.
+              <br />
+              Syncs with GitHub Issues.
+              <br />
+              Stored as JSON.
+              <br />
+              <span className="font-medium text-zinc-700 dark:text-zinc-300">Your team&apos;s feedback, finally in context.</span>
             </p>
 
             <div className="flex flex-col sm:flex-row items-center gap-4">
