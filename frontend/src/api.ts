@@ -182,3 +182,30 @@ export async function deleteThread(
   const url = `${base}/api/threads/${encodeURIComponent(threadId)}`;
   await fetchJson<void>(url, { method: "DELETE" });
 }
+
+export type ActivityLogEntry = {
+  id: string;
+  threadId: string | null;
+  type: string;
+  message: string;
+  timestamp: string;
+  meta?: Record<string, unknown>;
+};
+
+export async function getActivityLog(projectId: string): Promise<ActivityLogEntry[]> {
+  const base = baseUrl();
+  const url = `${base}/api/projects/${encodeURIComponent(projectId)}/activity-log`;
+  return fetchJson<ActivityLogEntry[]>(url);
+}
+
+export async function addActivityLogEntry(
+  projectId: string,
+  entry: { threadId?: string; type?: string; message: string; meta?: Record<string, unknown> }
+): Promise<ActivityLogEntry> {
+  const base = baseUrl();
+  const url = `${base}/api/projects/${encodeURIComponent(projectId)}/activity-log`;
+  return fetchJson<ActivityLogEntry>(url, {
+    method: "POST",
+    body: JSON.stringify(entry),
+  });
+}

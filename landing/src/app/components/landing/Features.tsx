@@ -5,22 +5,22 @@ const features = [
   {
     icon: Database,
     title: "JSON Storage",
-    desc: "No external database required. Comments are stored as JSON files in your repo."
+    desc: "No external database required. Comments live in .commentation/data.json. Commit and push to sync."
   },
   {
     icon: GitBranch,
     title: "Git Integration",
-    desc: "Sync feedback branches automatically. Comments become PR comments via GitHub Actions."
+    desc: "Branch-scoped. Comments on feature-x stay with that branch. Commit and push to share with your team."
   },
   {
     icon: Cpu,
-    title: "Framework Agnostic",
-    desc: "Works with React, Vue, Svelte, or vanilla JS. Web Components wrapper included."
+    title: "Vite + Script Tag",
+    desc: "React-based overlay. Add the Vite plugin and a script tag. Works with any HTML page."
   },
   {
     icon: Lock,
-    title: "Self-Hosted Ready",
-    desc: "Keep your data within your VPC. Docker container available for enterprise teams."
+    title: "Local-First",
+    desc: "No server required. Data lives in .commentation/ at your project root. Run it yourself."
   }
 ];
 

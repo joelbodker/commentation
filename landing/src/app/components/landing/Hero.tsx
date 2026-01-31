@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import { Github, ChevronRight, Command, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
-const NPM_COMMAND = 'npm install commentation';
+const CLONE_COMMAND = 'git clone https://github.com/joelbodker/commentation';
 
 export function Hero() {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(NPM_COMMAND);
+    navigator.clipboard.writeText(CLONE_COMMAND);
     setCopied(true);
     setTimeout(() => setCopied(false), 3000);
   };
@@ -55,9 +55,9 @@ export function Hero() {
               <br />
               Drop comments directly on DOM elements.
               <br />
-              Syncs with GitHub Issues.
+              Local-first. Sync via Git — no server required.
               <br />
-              Stored as JSON.
+              Stored as JSON in .commentation/
               <br />
               <span className="font-medium tagline-gradient">Your team&apos;s feedback, finally in context.</span>
             </p>
@@ -87,8 +87,10 @@ export function Hero() {
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.25 }}
+                      className="flex items-center gap-2"
                     >
-                      {NPM_COMMAND}
+                      <Command className="w-4 h-4 shrink-0" />
+                      Clone repo
                     </motion.span>
                   )}
                 </AnimatePresence>
@@ -105,11 +107,11 @@ export function Hero() {
               </span>
               <span className="flex items-center gap-2">
                 <ChevronRight className="w-4 h-4 text-blue-500" />
-                Vue
+                Vite
               </span>
               <span className="flex items-center gap-2">
                 <ChevronRight className="w-4 h-4 text-blue-500" />
-                Svelte
+                Script tag
               </span>
             </div>
           </motion.div>

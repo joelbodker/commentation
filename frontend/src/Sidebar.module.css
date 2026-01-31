@@ -17,7 +17,7 @@
   box-shadow: -2px 0 12px rgba(0, 0, 0, 0.1);
   z-index: 2147483645;
   transform: translateX(100%);
-  transition: transform 0.2s ease;
+  transition: transform 0.25s ease-out;
   overflow: hidden;
 }
 
@@ -42,12 +42,39 @@
   flex-shrink: 0;
 }
 
+.headerTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logo {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  background: #18181b;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sidebar[data-theme="dark"] .logo {
+  background: #fff;
+  color: #18181b;
+}
+
 .title {
   margin: 0;
-  font-size: 18px;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 200;
   color: #111;
-  font-family: "JMH Typewriter", "Courier New", Courier, monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  text-transform: lowercase;
 }
 
 .headerActions {
@@ -139,6 +166,35 @@
   color: #111;
 }
 
+.viewHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.viewBack {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid #ddd;
+  background: #fff;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #666;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.viewBack:hover {
+  background: #f8f9fa;
+  border-color: #ccc;
+  color: #333;
+}
+
 .inboxView {
   flex: 1;
   overflow-y: auto;
@@ -148,8 +204,12 @@
   gap: 8px;
 }
 
+.inboxView .viewHeader + * {
+  margin-top: 0;
+}
+
 .inboxViewTitle {
-  margin: 0 0 8px 0;
+  margin: 0;
   font-size: 13px;
   font-weight: 600;
   color: #666;
@@ -239,7 +299,14 @@
 }
 
 .logViewTitle {
-  margin: 0 0 8px 0;
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #666;
+}
+
+.settingsViewTitle {
+  margin: 0;
   font-size: 13px;
   font-weight: 600;
   color: #666;
@@ -272,6 +339,8 @@
 
 .logMessage {
   font-size: 12px;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .logEmpty {
@@ -280,9 +349,116 @@
   padding: 16px 0;
 }
 
+.logViewContent {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.logThreadGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.logThreadCard {
+  width: 100%;
+  padding: 10px 12px;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  background: #f8f9fa;
+  border: 1px solid #d0d0d0;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.logThreadCard:hover {
+  background: #eef1f5;
+  border-color: #bbb;
+}
+
+.logThreadCardExpanded {
+  background: #e8f4fc;
+  border-color: #a8c8e8;
+}
+
+.logThreadCardRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logThreadBadge {
+  font-size: 11px;
+  font-weight: 600;
+  color: #0d99ff;
+}
+
+.logThreadSnippet {
+  font-size: 13px;
+  font-weight: 500;
+  color: #333;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  line-height: 1.4;
+}
+
+.logThreadMeta {
+  font-size: 10px;
+  color: #888;
+}
+
+.logMetaCreated {
+  color: #eab308;
+}
+
+.logThreadEntries {
+  list-style: none;
+  margin: 0;
+  padding: 8px 0 0 12px;
+  border-left: 2px solid #ccc;
+  margin-left: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.logThreadEntries .logEntry {
+  padding: 6px 8px;
+  background: #fff;
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+}
+
+.logType {
+  font-size: 10px;
+  font-weight: 600;
+  color: #0d99ff;
+  text-transform: uppercase;
+}
+
+.logTypeResolved {
+  color: #e67e22;
+}
+
+.logTypeCreated {
+  color: #eab308;
+}
+
 .settingsView {
   flex: 1;
   padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .settingsLabel {
@@ -293,29 +469,49 @@
 }
 
 .settingsThemeRow {
+  position: relative;
   display: flex;
-  gap: 8px;
+  background: #eee;
+  border-radius: 8px;
+  padding: 2px;
+  gap: 0;
+  min-width: 160px;
+  overflow: visible;
+}
+
+.settingsThemeTrack {
+  position: absolute;
+  left: 2px;
+  top: 2px;
+  bottom: 2px;
+  width: calc(50% - 2px);
+  background: #fff;
+  border-radius: 6px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 0;
+  pointer-events: none;
 }
 
 .settingsThemeBtn {
+  position: relative;
+  z-index: 1;
+  flex: 1;
   padding: 8px 16px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  background: #fff;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
   font-size: 13px;
-  color: #333;
+  color: #666;
   cursor: pointer;
-  transition: border-color 0.15s, background 0.15s, color 0.15s;
+  transition: color 0.15s;
 }
 
 .settingsThemeBtn:hover {
-  border-color: #0d99ff;
-  background: #f0f8ff;
+  color: #111;
 }
 
 .settingsThemeBtnSelected {
-  border-color: #0d99ff;
-  background: #e8f4fc;
   color: #0d99ff;
 }
 
@@ -547,7 +743,7 @@
   background: #fff;
   border-radius: 6px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
-  transition: transform 0.25s ease;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 0;
   pointer-events: none;
 }
@@ -800,7 +996,7 @@
 .itemPage {
   font-size: 11px;
   color: #888;
-  font-family: "JetBrains Mono", "Courier New", monospace;
+  font-family: inherit;
 }
 
 .itemSnippet {
@@ -833,7 +1029,7 @@
 .badgeResolved {
   font-size: 10px;
   font-weight: 600;
-  color: #888;
+  color: #e67e22;
   text-transform: uppercase;
 }
 
@@ -896,39 +1092,21 @@
 
 .detailTitleRow {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.detailPin {
-  font-size: 12px;
-  font-weight: 600;
-  color: #0d99ff;
-  font-family: "JetBrains Mono", "Courier New", monospace;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
 }
 
 .detailPage {
-  font-size: 12px;
-  color: #0d99ff;
+  font-size: 11px;
+  color: #888;
   text-decoration: none;
-  font-family: "JetBrains Mono", "Courier New", monospace;
+  font-family: inherit;
 }
 
 .detailPage:hover {
-  text-decoration: underline;
-}
-
-.detailSnippet {
-  margin: 6px 0 0;
-  font-size: 13px;
   color: #666;
-  line-height: 1.4;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  text-decoration: underline;
 }
 
 .detailMeta {
@@ -1322,6 +1500,22 @@
   border-bottom-color: #333;
 }
 
+.sidebar[data-theme="dark"] .viewBack {
+  border-color: #404040;
+  background: #2d2d2d;
+  color: #a0a0a0;
+}
+
+.sidebar[data-theme="dark"] .viewBack:hover {
+  background: #353535;
+  border-color: #505050;
+  color: #e0e0e0;
+}
+
+.sidebar[data-theme="dark"] .settingsViewTitle {
+  color: #a0a0a0;
+}
+
 .sidebar[data-theme="dark"] .sidebarPanel .title {
   color: #e0e0e0;
 }
@@ -1396,24 +1590,80 @@
   color: #808080;
 }
 
+.sidebar[data-theme="dark"] .logThreadCard {
+  background: #1e2228;
+  border-color: #2d3239;
+}
+
+.sidebar[data-theme="dark"] .logThreadCard:hover {
+  background: #252a32;
+  border-color: #3d434c;
+}
+
+.sidebar[data-theme="dark"] .logThreadCardExpanded {
+  background: #1a2836;
+  border-color: #2d3d52;
+}
+
+.sidebar[data-theme="dark"] .logThreadBadge {
+  color: #5eb8ff;
+}
+
+.sidebar[data-theme="dark"] .logThreadSnippet {
+  color: #d0d0d0;
+}
+
+.sidebar[data-theme="dark"] .logThreadMeta {
+  color: #808080;
+}
+
+.sidebar[data-theme="dark"] .logMetaCreated {
+  color: #facc15;
+}
+
+.sidebar[data-theme="dark"] .logThreadEntries {
+  border-left-color: #404040;
+}
+
+.sidebar[data-theme="dark"] .logThreadEntries .logEntry {
+  background: #252a32;
+  border-color: #333;
+}
+
+.sidebar[data-theme="dark"] .logType {
+  color: #5eb8ff;
+}
+
+.sidebar[data-theme="dark"] .logTypeResolved {
+  color: #f59e0b;
+}
+
+.sidebar[data-theme="dark"] .logTypeCreated {
+  color: #facc15;
+}
+
 .sidebar[data-theme="dark"] .settingsLabel {
   color: #a0a0a0;
 }
 
-.sidebar[data-theme="dark"] .settingsThemeBtn {
-  border-color: #404040;
+.sidebar[data-theme="dark"] .settingsThemeRow {
   background: #2d2d2d;
-  color: #d0d0d0;
+}
+
+.sidebar[data-theme="dark"] .settingsThemeTrack {
+  background: #1a1a1a;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.sidebar[data-theme="dark"] .settingsThemeBtn {
+  color: #a0a0a0;
 }
 
 .sidebar[data-theme="dark"] .settingsThemeBtn:hover {
-  border-color: #5eb8ff;
-  background: #252a33;
+  color: #e0e0e0;
 }
 
 .sidebar[data-theme="dark"] .settingsThemeBtnSelected {
-  border-color: #5eb8ff;
-  background: #1a3a52;
   color: #5eb8ff;
 }
 
@@ -1501,21 +1751,22 @@
   background: #333;
 }
 
-.sidebar[data-theme="dark"] .pillSliderTrack {
-  background: #2d2d2d;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-}
-
 .sidebar[data-theme="dark"] .pill {
-  color: #a0a0a0;
+  color: #606060;
 }
 
 .sidebar[data-theme="dark"] .pill:hover {
-  color: #e0e0e0;
+  color: #a0a0a0;
 }
 
 .sidebar[data-theme="dark"] .pillSelected {
-  color: #5eb8ff;
+  color: #7ec8ff;
+  font-weight: 600;
+}
+
+.sidebar[data-theme="dark"] .pillSliderTrack {
+  background: #1a3a52;
+  box-shadow: 0 0 0 1px rgba(94, 184, 255, 0.3);
 }
 
 .sidebar[data-theme="dark"] .refresh {
@@ -1585,7 +1836,7 @@
 }
 
 .sidebar[data-theme="dark"] .badgeResolved {
-  color: #808080;
+  color: #f59e0b;
 }
 
 .sidebar[data-theme="dark"] .itemTrashBtn {
@@ -1613,17 +1864,14 @@
   color: #e0e0e0;
 }
 
-.sidebar[data-theme="dark"] .detailPin {
-  color: #5eb8ff;
-}
-
 .sidebar[data-theme="dark"] .detailPage {
-  color: #5eb8ff;
+  color: #888;
 }
 
-.sidebar[data-theme="dark"] .detailSnippet {
+.sidebar[data-theme="dark"] .detailPage:hover {
   color: #a0a0a0;
 }
+
 
 .sidebar[data-theme="dark"] .detailMeta {
   background: #252a32;

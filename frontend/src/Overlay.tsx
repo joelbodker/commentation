@@ -59,7 +59,9 @@ function applyOrder<T extends { id: string }>(items: T[], orderIds: string[]): T
 export type Theme = "light" | "dark";
 
 function OverlayInner() {
-  const { projectId } = useConfig();
+  const { projectId, hintText } = useConfig();
+  const [hintDismissed, setHintDismissed] = useState(false);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [theme, setTheme] = useState<Theme>(() => {
     if (typeof window === "undefined") return "dark";
     try {
@@ -87,7 +89,7 @@ function OverlayInner() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [inboxUnreadCount, setInboxUnreadCount] = useState(0);
-  const [activityLog, setActivityLog] = useState<{ id: string; message: string; timestamp: string }[]>([]);
+  const [activityLog, setActivityLog] = useState<import("./activityLog").ActivityLogEntry[]>([]);
   const [taskOrder, setTaskOrder] = useState<string[]>(() => {
     if (typeof window === "undefined") return [];
     try {
@@ -103,11 +105,31 @@ function OverlayInner() {
   });
   const logIdRef = useRef(0);
 
-  const addLog = useCallback((message: string) => {
-    const id = `log-${++logIdRef.current}`;
-    const timestamp = new Date().toISOString();
-    setActivityLog((prev) => [...prev.slice(-99), { id, message, timestamp }]);
-  }, []);
+  const addLog = useCallback(
+    (
+      message: string,
+      options?: { threadId?: string; type?: import("./activityLog").LogEventType; meta?: Record<string, string | number | undefined> }
+    ) => {
+      const id = `log-${++logIdRef.current}`;
+      const timestamp = new Date().toISOString();
+      const entry: import("./activityLog").ActivityLogEntry = {
+        id,
+        message,
+        timestamp,
+        threadId: options?.threadId ?? null,
+        type: options?.type ?? "generic",
+        meta: options?.meta as import("./activityLog").ActivityLogEntry["meta"],
+      };
+      setActivityLog((prev) => [...prev.slice(-499), entry]);
+      source.addActivityLogEntry(projectId, {
+        threadId: options?.threadId,
+        type: options?.type,
+        message,
+        meta: options?.meta as Record<string, unknown>,
+      }).catch(() => { /* ignore persistence errors */ });
+    },
+    [projectId]
+  );
 
   const persistName = useCallback(
     (name: string) => {
@@ -119,11 +141,10 @@ function OverlayInner() {
         /* ignore */
       }
       setCreatedBy(trimmed);
-      addLog(`Name saved: ${trimmed}`);
       // If they were waiting to place a comment, close sidebar so the composer appears at the click.
       if (pendingPin) setSidebarOpen(false);
     },
-    [projectId, pendingPin, addLog]
+    [projectId, pendingPin]
   );
 
   const pageUrl = typeof window !== "undefined" ? window.location.href : "";
@@ -158,6 +179,14 @@ function OverlayInner() {
   useEffect(() => {
     fetchThreads();
   }, [fetchThreads]);
+
+  useEffect(() => {
+    source.getActivityLog(projectId).then((entries) => {
+      if (entries.length > 0) {
+        setActivityLog(entries);
+      }
+    }).catch(() => { /* no API, keep empty */ });
+  }, [projectId]);
 
   const handlePageClick = useCallback(
     (e: MouseEvent) => {
@@ -216,7 +245,7 @@ function OverlayInner() {
 
   const handleComposerCancel = useCallback(() => {
     setPendingPin(null);
-    setCommentMode(false); // One comment per activation; click comment again to add another.
+    setCommentMode(false);
   }, []);
 
   const handleComposerPost = useCallback(
@@ -225,7 +254,7 @@ function OverlayInner() {
       const xPercent = (pendingPin.x / window.innerWidth) * 100;
       const yPercent = (pendingPin.y / window.innerHeight) * 100;
       try {
-        await source.createThread(projectId, pageUrl, {
+        const thread = await source.createThread(projectId, pageUrl, {
           selector: pendingPin.selector,
           xPercent,
           yPercent,
@@ -234,10 +263,17 @@ function OverlayInner() {
         });
         await fetchThreads();
         setPendingPin(null);
-        setSelectedThreadId(null);
-        setSidebarOpen(true);
         setCommentMode(false);
-        addLog(`Task created by ${name}`);
+        addLog(`Task created by ${name}: "${body}"`, {
+          threadId: thread.id,
+          type: "created",
+          meta: { createdBy: name, bodyPreview: body, pageUrl },
+        });
+        // Defer sidebar open to next frame so it animates (composer unmounts first, sidebar paints closed state)
+        requestAnimationFrame(() => {
+          setSelectedThreadId(null);
+          setSidebarOpen(true);
+        });
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to create task");
       }
@@ -245,12 +281,15 @@ function OverlayInner() {
     [projectId, pageUrl, statusFilter, pendingPin, addLog, fetchThreads]
   );
 
-  const handleSelectThread = useCallback((id: string) => {
-    setSelectedThreadId(id);
-    setSidebarOpen(true);
-    const t = threads.find((x) => x.id === id);
-    if (t) scrollToPinY(t.yPercent);
-  }, [threads]);
+  const handleSelectThread = useCallback(
+    (id: string) => {
+      setSelectedThreadId(id);
+      setSidebarOpen(true);
+      const t = threads.find((x) => x.id === id);
+      if (t) scrollToPinY(t.yPercent, t.selector);
+    },
+    [threads]
+  );
 
   const handleRefresh = useCallback(() => {
     setLoading(true);
@@ -262,11 +301,13 @@ function OverlayInner() {
       const t = threads.find((x) => x.id === threadId);
       const openList = threads.filter((x) => x.status === "OPEN");
       const idx = t && openList.length ? openList.findIndex((x) => x.id === threadId) + 1 : null;
-      addLog(
-        idx != null
-          ? `Task #${idx} deleted by ${createdBy.trim() || "Anonymous"}`
-          : `Task deleted by ${createdBy.trim() || "Anonymous"}`
-      );
+      const name = createdBy.trim() || "Anonymous";
+      const snippet = t?.comments?.[0]?.body?.slice(0, 60) ?? "";
+      addLog(`Task deleted by ${name}`, {
+        threadId: threadId,
+        type: "deleted",
+        meta: { createdBy: name, threadIndex: idx ?? undefined, pageUrl: t?.pageUrl, bodyPreview: snippet },
+      });
       const threadPageUrl = t?.pageUrl ?? pageUrl;
       try {
         await source.deleteThread(projectId, threadPageUrl, threadId);
@@ -410,6 +451,19 @@ function OverlayInner() {
     }
   }, []);
 
+  // Listen for external theme changes (e.g., from landing page toggle)
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === THEME_STORAGE_KEY && e.newValue) {
+        const newTheme = e.newValue === "light" ? "light" : "dark";
+        setTheme(newTheme);
+      }
+    };
+    
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
+
   useEffect(() => {
     document.body.setAttribute("data-theme", theme);
     return () => document.body.removeAttribute("data-theme");
@@ -422,6 +476,16 @@ function OverlayInner() {
     }
     prevSidebarOpenRef.current = sidebarOpen;
   }, [sidebarOpen]);
+
+  // Tooltip that follows mouse when in comment mode (until user places a pin)
+  useEffect(() => {
+    if (!commentMode) return;
+    const handleMouseMove = (e: MouseEvent) => {
+      setMousePos({ x: e.clientX, y: e.clientY });
+    };
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => window.removeEventListener("mousemove", handleMouseMove);
+  }, [commentMode]);
 
   return (
     <div className={styles.wrapper} data-theme={theme}>
@@ -446,11 +510,43 @@ function OverlayInner() {
         />
       )}
 
-      <div className={`${styles.pillboxFab} ${sidebarOpen ? styles.pillboxFabSingle : ""}`} aria-label="Commentation">
+      {/* Tooltip when in comment mode: "Now, click anywhere on the page to create a new comment." Follows mouse. */}
+      {commentMode && !pendingPin && (
+        <div
+          className={styles.commentModeTooltip}
+          style={{
+            left: mousePos.x + 16,
+            top: mousePos.y + 16,
+          }}
+          aria-hidden
+        >
+          Now, click anywhere on the page to create a new comment.
+        </div>
+      )}
+
+      {/* Handwritten hint: "try it out here" with arrow pointing to pillbox. Dismisses on pillbox click. */}
+      {hintText && (
+        <div
+          className={styles.pillboxHint}
+          style={{
+            opacity: hintDismissed ? 0 : 1,
+            pointerEvents: hintDismissed ? "none" : "auto",
+          }}
+          aria-hidden
+        >
+          <span className={styles.pillboxHintText}>{hintText}</span>
+          <span className={styles.pillboxHintArrow} aria-hidden>→</span>
+        </div>
+      )}
+
+      <div className={styles.pillboxFab} aria-label="Commentation">
         <button
           type="button"
           className={`${styles.pillboxBtn} ${styles.pillboxBtnComment} ${commentMode ? styles.pillboxBtnActive : ""}`}
-          onClick={() => setCommentMode((c) => !c)}
+          onClick={() => {
+            setHintDismissed(true);
+            setCommentMode((c) => !c);
+          }}
           title={commentMode ? "Cancel comment mode" : "Add comment (click page to place)"}
           aria-pressed={commentMode}
         >
@@ -460,8 +556,9 @@ function OverlayInner() {
         </button>
         <button
           type="button"
-          className={`${styles.pillboxBtn} ${styles.pillboxBtnMenu} ${sidebarOpen ? styles.pillboxBtnActive : ""} ${sidebarOpen ? styles.pillboxBtnMenuHidden : ""}`}
+          className={`${styles.pillboxBtn} ${styles.pillboxBtnMenu}`}
           onClick={() => {
+            setHintDismissed(true);
             const next = !sidebarOpen;
             setSidebarOpen(next);
             if (next) setSelectedThreadId(null); // Opening sidebar → default to Tasks list, not a thread.
@@ -469,11 +566,42 @@ function OverlayInner() {
           title={sidebarOpen ? "Close sidebar" : "Open comments sidebar"}
           aria-pressed={sidebarOpen}
         >
-          <svg className={styles.hamburgerIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-            <line x1="3" y1="6" x2="21" y2="6" />
-            <line x1="3" y1="12" x2="21" y2="12" />
-            <line x1="3" y1="18" x2="21" y2="18" />
-          </svg>
+          <div className={styles.pillboxMenuIconWrap}>
+            <svg
+              className={styles.hamburgerIcon}
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden
+              style={{ opacity: sidebarOpen ? 0 : 1 }}
+            >
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <line x1="3" y1="12" x2="21" y2="12" />
+              <line x1="3" y1="18" x2="21" y2="18" />
+            </svg>
+            <svg
+              className={styles.closeIcon}
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden
+              style={{
+                position: "absolute",
+                inset: 0,
+                margin: "auto",
+                opacity: sidebarOpen ? 1 : 0,
+              }}
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </div>
           {!sidebarOpen && inboxUnreadCount > 0 && (
             <span className={styles.pillboxDot} aria-hidden />
           )}
@@ -520,6 +648,7 @@ function OverlayInner() {
         theme={theme}
         onThemeChange={handleThemeChange}
         onInboxUnreadChange={setInboxUnreadCount}
+        onBackToTasks={() => setSelectedThreadId(null)}
       />
 
       {pendingPin && (
@@ -553,9 +682,9 @@ function OverlayInner() {
   );
 }
 
-export function Overlay({ projectId }: { projectId: string }) {
+export function Overlay({ projectId, hintText }: { projectId: string; hintText?: string }) {
   return (
-    <ConfigProvider projectId={projectId}>
+    <ConfigProvider projectId={projectId} hintText={hintText}>
       <OverlayInner />
     </ConfigProvider>
   );

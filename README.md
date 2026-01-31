@@ -23,13 +23,13 @@ npm install
 npm run dev
 ```
 
-This starts the demo at [http://localhost:5173](http://localhost:5173). The Vite plugin serves the Commentation API at `/__commentation__/api` and writes comments to `frontend/.commentation/data.json`.
+This starts the demo at [http://localhost:5173](http://localhost:5173). The Vite plugin serves the Commentation API at `/__commentation__/api` and writes comments and activity logs to `frontend/.commentation/data.json`.
 
 Turn on comment mode (💬), click the page to add a pin and first comment, then use the sidebar to view threads, reply, resolve, and assign.
 
-### 3. Sync comments with your team
+### 3. Sync comments and activity logs with your team
 
-Comments are stored in `.commentation/data.json`. Commit and push to share:
+Comments and activity logs are stored in `.commentation/data.json`. Commit and push to share:
 
 ```bash
 git add .commentation/

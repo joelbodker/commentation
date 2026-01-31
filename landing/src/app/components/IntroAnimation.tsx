@@ -361,6 +361,34 @@ export function IntroAnimation({ onComplete }: IntroAnimationProps) {
           </AnimatePresence>
         </motion.div>
         
+        {/* Skip link - bottom of page, fades in when cursor starts blinking */}
+        <motion.button
+          type="button"
+          onClick={() => {
+            setPhase('done');
+            onComplete();
+          }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: showTitleCursor ? 1 : 0 }}
+          transition={{ duration: 0.5 }}
+          style={{
+            position: 'absolute',
+            bottom: 36,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: 'none',
+            border: 'none',
+            padding: 0,
+            cursor: 'pointer',
+            fontSize: 12,
+            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+            color: '#737373',
+            fontWeight: 500,
+          }}
+        >
+          skip
+        </motion.button>
+
         {/* Animated cursor */}
         <AnimatePresence>
           {(phase === 'cursor' || phase === 'click') && (

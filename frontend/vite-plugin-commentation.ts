@@ -10,6 +10,7 @@ import { fileURLToPath } from "url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const API_PREFIX = "/__commentation__/api";
+const EMBED_PATH = "/__commentation__/embed.js";
 const DATA_FILE = ".commentation/data.json";
 
 type Comment = {
@@ -43,8 +44,18 @@ type PageData = {
   order: string[];
 };
 
+type ActivityLogEntry = {
+  id: string;
+  threadId: string | null;
+  type: string;
+  message: string;
+  timestamp: string;
+  meta?: Record<string, unknown>;
+};
+
 type DataFile = {
   projects: Record<string, Record<string, PageData>>;
+  activityLog?: ActivityLogEntry[];
 };
 
 function id(): string {
@@ -58,13 +69,15 @@ function getDataPath(root: string): string {
 function loadData(root: string): DataFile {
   const path = getDataPath(root);
   if (!existsSync(path)) {
-    return { projects: {} };
+    return { projects: {}, activityLog: [] };
   }
   try {
     const raw = readFileSync(path, "utf-8");
-    return JSON.parse(raw) as DataFile;
+    const data = JSON.parse(raw) as DataFile;
+    if (!data.activityLog) data.activityLog = [];
+    return data;
   } catch {
-    return { projects: {} };
+    return { projects: {}, activityLog: [] };
   }
 }
 
@@ -105,6 +118,21 @@ export function commentationPlugin(): Plugin {
     },
     configureServer(server) {
       server.middlewares.use(async (req, res, next) => {
+        // Serve embed.js from package dist (works when installed via npm or in monorepo)
+        const reqPath = req.url?.split("?")[0];
+        if (reqPath === EMBED_PATH) {
+          try {
+            const embedPath = join(__dirname, "dist", "embed.js");
+            const code = readFileSync(embedPath, "utf-8");
+            res.statusCode = 200;
+            res.setHeader("Content-Type", "application/javascript");
+            res.end(code);
+          } catch {
+            res.statusCode = 404;
+            res.end("Commentation embed not found. Run npm run build in the frontend package.");
+          }
+          return;
+        }
         if (!req.url?.startsWith(API_PREFIX)) return next();
 
         const url = new URL(req.url, `http://${req.headers.host}`);
@@ -135,6 +163,46 @@ export function commentationPlugin(): Plugin {
           // GET /api/health
           if (path === "/health" && method === "GET") {
             return sendJson(200, { ok: true });
+          }
+
+          // GET /api/projects/:projectId/activity-log
+          const getLogMatch = path.match(/^\/projects\/([^/]+)\/activity-log$/);
+          if (getLogMatch && method === "GET") {
+            const data = loadData(root);
+            const entries = data.activityLog ?? [];
+            return sendJson(200, entries);
+          }
+
+          // POST /api/projects/:projectId/activity-log
+          const addLogMatch = path.match(/^\/projects\/([^/]+)\/activity-log$/);
+          if (addLogMatch && method === "POST") {
+            const projectId = addLogMatch[1];
+            const body = (await readBody()) as {
+              threadId?: string;
+              type?: string;
+              message?: string;
+              meta?: Record<string, unknown>;
+            };
+            const { threadId, type, message, meta } = body;
+            if (!message) {
+              return sendJson(400, { error: "Required: message" });
+            }
+            const data = loadData(root);
+            if (!data.activityLog) data.activityLog = [];
+            const entry: ActivityLogEntry = {
+              id: id(),
+              threadId: threadId ?? null,
+              type: type ?? "generic",
+              message,
+              timestamp: new Date().toISOString(),
+              meta: meta ?? undefined,
+            };
+            data.activityLog.push(entry);
+            if (data.activityLog.length > 500) {
+              data.activityLog = data.activityLog.slice(-500);
+            }
+            saveData(root, data);
+            return sendJson(201, entry);
           }
 
           // GET /api/projects/:projectId/threads?pageUrl=...&status=open|resolved|all

@@ -46,3 +46,15 @@ model Comment {
   createdBy String
   createdAt DateTime @default(now())
 }
+
+model ActivityLog {
+  id        String   @id @default(uuid())
+  projectId String
+  threadId  String?
+  type      String
+  message   String
+  meta      String?  // JSON string
+  createdAt DateTime @default(now())
+
+  @@index([projectId])
+}

@@ -2,6 +2,34 @@
 @import './tailwind.css';
 @import './theme.css';
 
+/* Prevent layout shift from scrollbar */
+html {
+  overflow-y: scroll;
+}
+
+/* Smooth fade transition when switching between light and dark mode */
+html,
+body,
+.theme-transition,
+.theme-transition * {
+  transition: background-color 0.35s ease, color 0.35s ease, border-color 0.35s ease;
+}
+
+/* Commentation sidebar needs transform for slide animation - .theme-transition * overrides it */
+.theme-transition [data-fig-comments-sidebar] {
+  transition: transform 0.25s ease-out, background-color 0.35s ease, color 0.35s ease, border-color 0.35s ease;
+}
+
+/* Tasks/Resolved pill slider track needs transform transition */
+.theme-transition [data-pill-slider-track] {
+  transition: transform 0.25s ease !important;
+}
+
+/* Theme switcher track needs to animate - override the global transition */
+.theme-transition [data-theme-slider-track] {
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
 /* Slow subtle color shift for tagline - zinc to soft blue-gray */
 @keyframes taglineColor {
   0%, 100% {

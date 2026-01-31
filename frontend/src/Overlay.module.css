@@ -9,7 +9,7 @@
   box-sizing: border-box;
 }
 
-/* Top-left theme switch: light/dark toggle for the page. */
+/* Top-left theme switch: light/dark toggle for the page. Sliding track animates between the two. */
 .pageThemeSwitch {
   position: fixed;
   top: 16px;
@@ -19,18 +19,20 @@
 }
 
 .pageThemeToggle {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 0;
   padding: 4px;
   border: 1px solid #e5e5e5;
   border-radius: 20px;
-  background: #fff;
+  background: #eee;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  cursor: pointer;
   font-size: 16px;
   line-height: 1;
   transition: box-shadow 0.2s, border-color 0.2s;
+  overflow: visible;
+  width: 68px;
 }
 
 .pageThemeToggle:hover {
@@ -38,23 +40,46 @@
   border-color: #ddd;
 }
 
-.pageThemeToggle span {
+.pageThemeTrack {
+  position: absolute;
+  left: 4px;
+  top: 4px;
+  bottom: 4px;
+  width: calc(50% - 4px);
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.pageThemeBtn {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 28px;
   height: 28px;
+  border: none;
   border-radius: 50%;
-  transition: background 0.2s, color 0.2s;
+  background: transparent;
+  color: #999;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.2s;
+}
+
+.pageThemeBtn:hover {
+  color: #666;
 }
 
 .pageThemeIconOn {
-  background: #f0f4f8;
   color: #0d99ff;
 }
 
 .pageThemeIconOff {
-  background: transparent;
   color: #999;
 }
 
@@ -69,13 +94,24 @@
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
 }
 
+.wrapper[data-theme="dark"] .pageThemeTrack {
+  background: #1a1a1a;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.wrapper[data-theme="dark"] .pageThemeBtn {
+  color: #666;
+}
+
+.wrapper[data-theme="dark"] .pageThemeBtn:hover {
+  color: #a0a0a0;
+}
+
 .wrapper[data-theme="dark"] .pageThemeIconOn {
-  background: #1a3a52;
   color: #5eb8ff;
 }
 
 .wrapper[data-theme="dark"] .pageThemeIconOff {
-  background: transparent;
   color: #666;
 }
 
@@ -89,6 +125,80 @@
 
 .pinsLayer > * {
   pointer-events: auto;
+}
+
+/* Tooltip when in comment mode: follows mouse until user places a pin. */
+.commentModeTooltip {
+  position: fixed;
+  transform: translate(0, 0);
+  padding: 10px 14px;
+  background: #fff;
+  color: #333;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e5e5e5;
+  pointer-events: none;
+  z-index: 2147483647;
+  white-space: nowrap;
+  max-width: 90vw;
+}
+
+.wrapper[data-theme="dark"] .commentModeTooltip {
+  background: #2d2d2d;
+  color: #e0e0e0;
+  border-color: #404040;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Handwritten hint: "try it out here" with arrow, positioned to the left of the pillbox.
+   Blur layer (::before) feathers out; text sits on top and stays visible. */
+.pillboxHint {
+  position: fixed;
+  bottom: 16px;
+  right: 145px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  pointer-events: none;
+  z-index: 2147483647;
+  transition: opacity 0.4s ease;
+  font-family: "Caveat", cursive;
+  font-size: 32px;
+  font-weight: 500;
+  color: #52525b;
+}
+
+.pillboxHint::before {
+  content: "";
+  position: absolute;
+  inset: -24px;
+  z-index: -1;
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  /* Fade to zero by 55% radius so the outer edge is already fully transparent */
+  -webkit-mask-image: radial-gradient(ellipse 100% 100% at 50% 50%, black 15%, transparent 55%);
+  mask-image: radial-gradient(ellipse 100% 100% at 50% 50%, black 15%, transparent 55%);
+}
+
+.wrapper[data-theme="dark"] .pillboxHint {
+  color: #a8cce8;
+}
+
+.wrapper[data-theme="dark"] .pillboxHint::before {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.pillboxHintText {
+  white-space: nowrap;
+}
+
+.pillboxHintArrow {
+  font-size: 24px;
+  opacity: 0.9;
 }
 
 /* Two-button pillbox: comment (left) toggles comment mode, hamburger (right) toggles sidebar. */
@@ -107,7 +217,7 @@
   z-index: 2147483647;
   overflow: hidden;
   width: 106px;
-  transition: width 0.2s ease, gap 0.2s ease;
+  transition: width 0.35s ease-out, gap 0.35s ease-out;
 }
 
 /* When sidebar open: pillbox shrinks to single comment button, hamburger slides out. */
@@ -120,6 +230,7 @@
   position: relative;
   width: 44px;
   height: 44px;
+  min-width: 44px;
   border: none;
   border-radius: 50%;
   background: transparent;
@@ -128,7 +239,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: box-shadow 0.2s, transform 0.1s, color 0.2s;
+  transition: box-shadow 0.2s, transform 0.1s, color 0.2s, width 0.35s ease-out, min-width 0.35s ease-out, opacity 0.35s ease-out;
   outline: none;
 }
 
@@ -186,8 +297,23 @@
   }
 }
 
+.pillboxMenuIconWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+}
+
+.pillboxMenuIconWrap .hamburgerIcon,
+.pillboxMenuIconWrap .closeIcon {
+  transition: opacity 0.2s ease;
+}
+
 .commentIcon,
-.hamburgerIcon {
+.hamburgerIcon,
+.closeIcon {
   width: 20px;
   height: 20px;
   flex-shrink: 0;
@@ -201,7 +327,6 @@
   padding: 0;
   margin: 0;
   overflow: hidden;
-  transition: opacity 0.15s ease, width 0.2s ease, min-width 0.2s ease;
 }
 
 .pillboxDot {

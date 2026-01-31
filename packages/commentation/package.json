@@ -1,0 +1,39 @@
+{
+  "name": "commentation",
+  "version": "0.1.0",
+  "description": "Pin-based contextual comments overlay for websites. Local-first, sync via Git.",
+  "type": "module",
+  "main": "./vite-plugin-commentation.ts",
+  "types": "./vite-plugin-commentation.ts",
+  "exports": {
+    ".": {
+      "import": "./vite-plugin-commentation.ts",
+      "types": "./vite-plugin-commentation.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "vite-plugin-commentation.ts"
+  ],
+  "keywords": [
+    "comments",
+    "feedback",
+    "vite",
+    "plugin",
+    "overlay",
+    "design-review",
+    "local-first",
+    "git"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/joelbodker/commentation"
+  },
+  "license": "MIT",
+  "peerDependencies": {
+    "vite": ">=5.0.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Hero } from "@/app/components/landing/Hero";
 import { Features } from "@/app/components/landing/Features";
 import { HowItWorks } from "@/app/components/landing/HowItWorks";
 import { Integration } from "@/app/components/landing/Integration";
 import { Support } from "@/app/components/landing/Support";
+import { ThemeSwitcherSection } from "@/app/components/landing/ThemeSwitcherSection";
 import { IntroAnimation } from "@/app/components/IntroAnimation";
 import { Toaster } from "sonner";
 import { motion, AnimatePresence } from "motion/react";
@@ -11,9 +12,36 @@ import { Overlay } from "@commentation/Overlay";
 
 export default function App() {
   const [introComplete, setIntroComplete] = useState(false);
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  
+  // Apply theme class to document and sync with Commentation
+  useEffect(() => {
+    // Update document class for Tailwind
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    
+    // Sync with Commentation's localStorage key so the overlay picks up the theme
+    try {
+      localStorage.setItem('commentation-theme', theme);
+      // Dispatch a storage event so the Overlay can react to it
+      window.dispatchEvent(new StorageEvent('storage', {
+        key: 'commentation-theme',
+        newValue: theme,
+      }));
+    } catch {
+      // ignore localStorage errors
+    }
+  }, [theme]);
+  
+  const handleThemeChange = useCallback((newTheme: 'dark' | 'light') => {
+    setTheme(newTheme);
+  }, []);
   
   return (
-    <div className="min-h-screen bg-white dark:bg-black text-zinc-900 dark:text-zinc-100 font-sans selection:bg-blue-500/30 selection:text-blue-200">
+    <div className="theme-transition min-h-screen bg-white dark:bg-black text-zinc-900 dark:text-zinc-100 font-sans selection:bg-blue-500/30 selection:text-blue-200">
       {/* Intro Animation */}
       {!introComplete && <IntroAnimation onComplete={() => setIntroComplete(true)} />}
       
@@ -48,6 +76,10 @@ export default function App() {
                 <Hero />
                 <Features />
                 <Integration />
+                <ThemeSwitcherSection 
+                  onThemeChange={handleThemeChange}
+                  currentTheme={theme}
+                />
                 <HowItWorks />
                 <Support />
                 
@@ -74,7 +106,7 @@ export default function App() {
 
             {/* Commentation overlay - minimized (pillbox) by default */}
             <div id="fig-comments-root">
-              <Overlay projectId="landing" />
+              <Overlay projectId="landing" hintText="try it out here" />
             </div>
           </motion.div>
         )}

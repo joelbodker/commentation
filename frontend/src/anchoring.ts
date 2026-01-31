@@ -101,7 +101,25 @@ export function percentToAbsoluteStyle(
 /**
  * Scroll the page so the pin’s Y position is in view (smooth).
  */
-export function scrollToPinY(yPercent: number): void {
+export function scrollToPinY(yPercent: number, selector?: string): void {
+  if (selector) {
+    try {
+      const el = document.querySelector(selector);
+      if (el) {
+        const rect = el.getBoundingClientRect();
+        const docY = rect.top + window.scrollY;
+        const centerY = docY - window.innerHeight / 2 + rect.height / 2;
+        const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+        const targetScroll = Math.max(0, Math.min(centerY, maxScroll));
+        window.scrollTo({ top: targetScroll, behavior: "smooth" });
+        return;
+      }
+    } catch {
+      // selector invalid or element not found, fall through to fallback
+    }
+  }
+  // Fallback: scroll so pin is roughly centered (yPercent was viewport position at creation)
   const y = (yPercent / 100) * window.innerHeight;
-  window.scrollTo({ top: y, behavior: "smooth" });
+  const targetScroll = Math.max(0, y - window.innerHeight / 2);
+  window.scrollTo({ top: targetScroll, behavior: "smooth" });
 }

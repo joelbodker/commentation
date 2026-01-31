@@ -3,6 +3,8 @@
  */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Thread, ThreadListItem } from "./store";
+import { getEntriesByThread, getThreadIdsWithActivity } from "./activityLog";
+import type { ActivityLogEntry } from "./activityLog";
 import styles from "./Sidebar.module.css";
 
 type ThreadWithIndex = ThreadListItem & { index: number };
@@ -128,6 +130,14 @@ function pagePathFromUrl(url: string): string {
   }
 }
 
+function formatPageLabel(url: string): string {
+  const path = pagePathFromUrl(url);
+  if (path === "/" || path === "") {
+    return "Page: ~/";
+  }
+  return `Page: ${path}`;
+}
+
 const INBOX_SEEN_KEY = "commentation-inbox-seen";
 
 function getInboxSeenKey(projectId: string, createdBy: string): string {
@@ -156,6 +166,136 @@ function markThreadAsSeen(projectId: string, createdBy: string, threadId: string
   } catch {
     /* ignore */
   }
+}
+
+function LogViewContent({
+  activityLog,
+  threads,
+  logExpandedThreadId,
+  onExpandThread,
+  formatDateTime,
+  formatPageLabel,
+}: {
+  activityLog: ActivityLogEntry[];
+  threads: ThreadWithIndex[];
+  logExpandedThreadId: string | null;
+  onExpandThread: (id: string | null) => void;
+  formatDateTime: (s: string) => string;
+  formatPageLabel: (url: string) => string;
+}) {
+  const byThread = useMemo(() => getEntriesByThread(activityLog), [activityLog]);
+  const threadIdsWithActivity = useMemo(
+    () =>
+      getThreadIdsWithActivity(activityLog).sort((a, b) => {
+        const aEntries = byThread.get(a) ?? [];
+        const bEntries = byThread.get(b) ?? [];
+        const aLast = aEntries[aEntries.length - 1]?.timestamp ?? "";
+        const bLast = bEntries[bEntries.length - 1]?.timestamp ?? "";
+        return new Date(bLast).getTime() - new Date(aLast).getTime();
+      }),
+    [activityLog, byThread]
+  );
+  const globalEntries = byThread.get(null) ?? [];
+
+  const getThreadDisplay = (threadId: string) => {
+    const t = threads.find((x) => x.id === threadId);
+    if (t) {
+      const originalComment = t.comments?.[0]?.body ?? "";
+      return {
+        index: t.index,
+        originalComment: originalComment.slice(0, 80) + (originalComment.length > 80 ? "…" : ""),
+        pageUrl: t.pageUrl,
+        status: t.status,
+        createdAt: t.createdAt,
+      };
+    }
+    const entries = byThread.get(threadId) ?? [];
+    const deletedEntry = entries.find((e) => e.type === "deleted");
+    const createdEntry = entries.find((e) => e.type === "created");
+    return {
+      index: deletedEntry?.meta?.threadIndex ?? 0,
+      originalComment: (deletedEntry?.meta?.bodyPreview as string) ?? "(deleted)",
+      pageUrl: (deletedEntry?.meta?.pageUrl as string) ?? "",
+      status: "RESOLVED" as const,
+      createdAt: createdEntry?.timestamp ?? "",
+    };
+  };
+
+  return (
+    <div className={styles.logViewContent}>
+      {globalEntries.length > 0 && (
+        <div className={styles.logThreadGroup}>
+          <button
+            type="button"
+            className={`${styles.logThreadCard} ${logExpandedThreadId === "__global__" ? styles.logThreadCardExpanded : ""}`}
+            onClick={() => onExpandThread(logExpandedThreadId === "__global__" ? null : "__global__")}
+          >
+            <span className={styles.logThreadBadge}>General</span>
+            <span className={styles.logThreadMeta}>
+              {globalEntries.length} event{globalEntries.length !== 1 ? "s" : ""} · <span className={styles.logMetaCreated}>Created:</span> {formatDateTime(globalEntries[0]!.timestamp)}
+            </span>
+          </button>
+          {logExpandedThreadId === "__global__" && (
+            <ul className={styles.logThreadEntries}>
+              {[...globalEntries].reverse().map((entry) => (
+                <li key={entry.id} className={styles.logEntry}>
+                  <span className={styles.logTime}>{formatDateTime(entry.timestamp)}</span>
+                  <span
+                    className={`${styles.logType} ${entry.type === "resolved" ? styles.logTypeResolved : ""} ${entry.type === "created" ? styles.logTypeCreated : ""}`}
+                  >
+                    {entry.type}
+                  </span>
+                  <span className={styles.logMessage}>{entry.message}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+      {threadIdsWithActivity.map((threadId) => {
+        const entries = byThread.get(threadId) ?? [];
+        const display = getThreadDisplay(threadId);
+        const isExpanded = logExpandedThreadId === threadId;
+
+        return (
+          <div key={threadId} className={styles.logThreadGroup}>
+            <button
+              type="button"
+              className={`${styles.logThreadCard} ${isExpanded ? styles.logThreadCardExpanded : ""}`}
+              onClick={() => onExpandThread(isExpanded ? null : threadId)}
+            >
+              <span className={styles.logThreadSnippet}>
+                {display.originalComment || "(no comment)"}
+              </span>
+              <div className={styles.logThreadCardRow}>
+                <span className={display.status === "OPEN" ? styles.badgeOpen : styles.badgeResolved}>
+                  {display.status}
+                </span>
+              </div>
+              <span className={styles.logThreadMeta}>
+                {formatPageLabel(display.pageUrl || "/")} · {entries.length} event{entries.length !== 1 ? "s" : ""} · <span className={styles.logMetaCreated}>Created:</span> {display.createdAt ? formatDateTime(display.createdAt) : "—"}
+              </span>
+            </button>
+            {isExpanded && (
+              <ul className={styles.logThreadEntries}>
+                {[...entries].reverse().map((entry) => (
+                  <li key={entry.id} className={styles.logEntry}>
+                    <span className={styles.logTime}>{formatDateTime(entry.timestamp)}</span>
+                    <span
+                      className={`${styles.logType} ${entry.type === "resolved" ? styles.logTypeResolved : ""} ${entry.type === "created" ? styles.logTypeCreated : ""}`}
+                    >
+                      {entry.type}
+                    </span>
+                    <span className={styles.logMessage}>{entry.message}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
 }
 
 function computeInboxItems(
@@ -215,7 +355,7 @@ function ThreadDetail({
   onAddComment: (threadId: string, pageUrl: string, body: string, createdBy: string) => void | Promise<void>;
   onUpdateThreadStatus: (threadId: string, pageUrl: string, status: "OPEN" | "RESOLVED", resolvedBy?: string) => void | Promise<void>;
   onAssignThread: (threadId: string, pageUrl: string, assignedTo: string, assignedBy: string) => void | Promise<void>;
-  addLog?: (msg: string) => void;
+  addLog?: import("./activityLog").AddLogFn;
   knownNames?: string[];
 }) {
   const [reply, setReply] = useState("");
@@ -277,7 +417,11 @@ function ThreadDetail({
     setMention(null);
     try {
       await onAddComment(threadId, thread.pageUrl, b, name);
-      addLog?.(`Reply on task #${threadIndex} by ${name}`);
+      addLog?.(`Reply by ${name}: "${b}"`, {
+        threadId,
+        type: "reply",
+        meta: { createdBy: name, threadIndex, bodyPreview: b },
+      });
       setReply("");
       onRefresh();
     } finally {
@@ -333,10 +477,18 @@ function ThreadDetail({
     try {
       await onUpdateThreadStatus(threadId, thread.pageUrl, next, next === "RESOLVED" ? name : undefined);
       if (next === "RESOLVED") {
-        addLog?.(`Task #${threadIndex} resolved by ${name}`);
+        addLog?.(`Task resolved by ${name}`, {
+          threadId,
+          type: "resolved",
+          meta: { resolvedBy: name, threadIndex },
+        });
         onResolved?.();
       } else {
-        addLog?.(`Task #${threadIndex} reopened by ${name}`);
+        addLog?.(`Task reopened by ${name}`, {
+          threadId,
+          type: "reopened",
+          meta: { createdBy: name, threadIndex },
+        });
       }
       onRefresh();
     } finally {
@@ -352,7 +504,11 @@ function ThreadDetail({
     setAssigning(true);
     try {
       await onAssignThread(threadId, thread.pageUrl, assignedTo, assignedBy);
-      addLog?.(`Task #${threadIndex} assigned to ${assignedTo} by ${assignedBy}`);
+      addLog?.(`Task assigned to ${assignedTo} by ${assignedBy}`, {
+        threadId,
+        type: "assigned",
+        meta: { assignedTo, assignedBy, threadIndex },
+      });
       setAssignTo("");
       setAssignToCustom("");
       onRefresh();
@@ -373,8 +529,6 @@ function ThreadDetail({
   }
 
   const comments = thread.comments ?? [];
-  const firstBody = comments[0]?.body ?? "";
-  const snippet = firstBody.slice(0, 80) + (firstBody.length > 80 ? "…" : "");
 
   return (
     <div className={styles.detail}>
@@ -384,15 +538,13 @@ function ThreadDetail({
         </button>
         <div className={styles.detailHeaderMain}>
           <div className={styles.detailTitleRow}>
-            <span className={styles.detailPin}>#{threadIndex}</span>
             <span className={thread.status === "OPEN" ? styles.badgeOpen : styles.badgeResolved}>
               {thread.status}
             </span>
             <a href={thread.pageUrl} className={styles.detailPage} title="Go to page">
-              {pagePathFromUrl(thread.pageUrl)}
+              {formatPageLabel(thread.pageUrl)}
             </a>
           </div>
-          {snippet && <p className={styles.detailSnippet}>{snippet}</p>}
         </div>
       </header>
 
@@ -526,8 +678,6 @@ function ThreadDetail({
   );
 }
 
-type ActivityLogEntry = { id: string; message: string; timestamp: string };
-
 export function Sidebar({
   open,
   onClose,
@@ -560,6 +710,7 @@ export function Sidebar({
   theme = "light",
   onThemeChange,
   onInboxUnreadChange,
+  onBackToTasks: onBackToTasksProp,
 }: {
   open: boolean;
   onClose: () => void;
@@ -583,7 +734,7 @@ export function Sidebar({
   onUpdateThreadStatus: (threadId: string, pageUrl: string, status: "OPEN" | "RESOLVED", resolvedBy?: string) => void | Promise<void>;
   onAssignThread: (threadId: string, pageUrl: string, assignedTo: string, assignedBy: string) => void | Promise<void>;
   activityLog?: ActivityLogEntry[];
-  addLog?: (msg: string) => void;
+  addLog?: import("./activityLog").AddLogFn;
   onDeleteThread?: (threadId: string) => void;
   onReorder?: (threadIds: string[]) => void;
   showReorder?: boolean;
@@ -592,6 +743,7 @@ export function Sidebar({
   theme?: "light" | "dark";
   onThemeChange?: (theme: "light" | "dark") => void;
   onInboxUnreadChange?: (count: number) => void;
+  onBackToTasks?: () => void;
 }) {
   const [view, setView] = useState<"comments" | "inbox" | "log" | "settings">("comments");
   const [detailThreadId, setDetailThreadId] = useState<string | null>(null);
@@ -601,7 +753,22 @@ export function Sidebar({
   const [dropIndex, setDropIndex] = useState<number | null>(null);
   const [deletingThreadIds, setDeletingThreadIds] = useState<Set<string>>(new Set());
   const [inboxSeenVersion, setInboxSeenVersion] = useState(0);
+  const [logExpandedThreadId, setLogExpandedThreadId] = useState<string | null>(null);
+  const [themeSliderPosition, setThemeSliderPosition] = useState<"light" | "dark">(theme);
   const prevOpenRef = useRef(false);
+
+  // Keep slider in sync with theme (e.g. from storage, external change)
+  useEffect(() => {
+    setThemeSliderPosition(theme);
+  }, [theme]);
+
+  const handleBackToTasks = useCallback(() => {
+    setDetailThreadId(null);
+    setLogExpandedThreadId(null);
+    setView("comments");
+    onStatusFilterChange("open");
+    onBackToTasksProp?.();
+  }, [onBackToTasksProp, onStatusFilterChange]);
 
   const handleDeleteClick = useCallback(
     (threadId: string) => {
@@ -682,14 +849,17 @@ export function Sidebar({
     >
       <div className={styles.sidebarPanel}>
         <div className={styles.header}>
-          <h2 className={styles.title}>Commentation</h2>
+          <div className={styles.headerTitleRow}>
+            <div className={styles.logo} aria-hidden>C</div>
+            <h2 className={styles.title}>Commentation</h2>
+          </div>
           <div className={styles.headerActions}>
             <button
               type="button"
               className={`${styles.headerIconBtn} ${view === "inbox" ? styles.headerIconActive : ""} ${styles.headerIconInbox}`}
               onClick={() => setView(view === "inbox" ? "comments" : "inbox")}
               aria-label="Inbox"
-              title={inboxUnreadCount > 0 ? `${inboxUnreadCount} new reply${inboxUnreadCount === 1 ? "" : "ies"}` : "Replies to you"}
+              title="Inbox"
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                 <polyline points="22 12 16 12 14 15 10 15 8 12 2 12" />
@@ -703,8 +873,8 @@ export function Sidebar({
               type="button"
               className={`${styles.headerIconBtn} ${view === "log" ? styles.headerIconActive : ""}`}
               onClick={() => setView(view === "log" ? "comments" : "log")}
-              aria-label="Log"
-              title="Activity log"
+              aria-label="Logs"
+              title="Logs"
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
@@ -726,18 +896,23 @@ export function Sidebar({
                 <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
               </svg>
             </button>
-            <button type="button" className={styles.headerIconBtn} onClick={onClose} aria-label="Close" title="Close">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                <line x1="18" y1="6" x2="6" y2="18" />
-                <line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
-            </button>
           </div>
         </div>
 
         {view === "inbox" && (
           <div className={styles.inboxView}>
-            <p className={styles.inboxViewTitle}>Replies to you</p>
+            <div className={styles.viewHeader}>
+              <button
+                type="button"
+                className={styles.viewBack}
+                onClick={handleBackToTasks}
+                aria-label="Back to tasks"
+                title="Back to tasks"
+              >
+                ←
+              </button>
+              <p className={styles.inboxViewTitle}>Replies to you</p>
+            </div>
             {!createdBy.trim() ? (
               <p className={styles.inboxEmpty}>Enter your name in Settings to see replies.</p>
             ) : inboxItems.length === 0 ? (
@@ -760,7 +935,7 @@ export function Sidebar({
                           {(latest.body ?? "").length > 80 ? "…" : ""}
                         </span>
                         <span className={styles.inboxItemMeta}>
-                          {pagePathFromUrl(thread.pageUrl)} · {formatDate(latest.createdAt)}
+                          {formatPageLabel(thread.pageUrl)} · {formatDate(latest.createdAt)}
                         </span>
                       </button>
                     </li>
@@ -773,38 +948,79 @@ export function Sidebar({
 
         {view === "log" && (
           <div className={styles.logView}>
-            <p className={styles.logViewTitle}>Activity log</p>
-            <ul className={styles.logList}>
-              {activityLog.length === 0 ? (
-                <li className={styles.logEmpty}>No activity yet.</li>
-              ) : (
-                [...activityLog].reverse().map((entry) => (
-                  <li key={entry.id} className={styles.logEntry}>
-                    <span className={styles.logTime}>{formatDateTime(entry.timestamp)}</span>
-                    <span className={styles.logMessage}>{entry.message}</span>
-                  </li>
-                ))
-              )}
-            </ul>
+            <div className={styles.viewHeader}>
+              <button
+                type="button"
+                className={styles.viewBack}
+                onClick={handleBackToTasks}
+                aria-label="Back to tasks"
+                title="Back to tasks"
+              >
+                ←
+              </button>
+              <p className={styles.logViewTitle}>Activity log</p>
+            </div>
+            {activityLog.length === 0 ? (
+              <p className={styles.logEmpty}>No activity yet.</p>
+            ) : (
+              <LogViewContent
+                activityLog={activityLog}
+                threads={safeThreads}
+                logExpandedThreadId={logExpandedThreadId}
+                onExpandThread={setLogExpandedThreadId}
+                formatDateTime={formatDateTime}
+                formatPageLabel={formatPageLabel}
+              />
+            )}
           </div>
         )}
 
         {view === "settings" && (
           <div className={styles.settingsView}>
-            <p className={styles.settingsLabel}>Theme</p>
-            <div className={styles.settingsThemeRow} role="group" aria-label="App theme">
+            <div className={styles.viewHeader}>
               <button
                 type="button"
-                className={`${styles.settingsThemeBtn} ${theme === "light" ? styles.settingsThemeBtnSelected : ""}`}
-                onClick={() => onThemeChange?.("light")}
+                className={styles.viewBack}
+                onClick={handleBackToTasks}
+                aria-label="Back to tasks"
+                title="Back to tasks"
+              >
+                ←
+              </button>
+              <p className={styles.settingsViewTitle}>Settings</p>
+            </div>
+            <p className={styles.settingsLabel}>Theme</p>
+            <div className={styles.settingsThemeRow} role="group" aria-label="App theme">
+              <div
+                className={styles.settingsThemeTrack}
+                style={{
+                  transform:
+                    themeSliderPosition === "light"
+                      ? "translate3d(0, 0, 0)"
+                      : "translate3d(100%, 0, 0)",
+                }}
+                aria-hidden
+              />
+              <button
+                type="button"
+                className={`${styles.settingsThemeBtn} ${themeSliderPosition === "light" ? styles.settingsThemeBtnSelected : ""}`}
+                onClick={() => {
+                  if (theme === "light") return;
+                  setThemeSliderPosition("light");
+                  setTimeout(() => onThemeChange?.("light"), 260);
+                }}
                 aria-pressed={theme === "light"}
               >
                 Light
               </button>
               <button
                 type="button"
-                className={`${styles.settingsThemeBtn} ${theme === "dark" ? styles.settingsThemeBtnSelected : ""}`}
-                onClick={() => onThemeChange?.("dark")}
+                className={`${styles.settingsThemeBtn} ${themeSliderPosition === "dark" ? styles.settingsThemeBtnSelected : ""}`}
+                onClick={() => {
+                  if (theme === "dark") return;
+                  setThemeSliderPosition("dark");
+                  setTimeout(() => onThemeChange?.("dark"), 260);
+                }}
                 aria-pressed={theme === "dark"}
               >
                 Dark
@@ -902,7 +1118,13 @@ export function Sidebar({
               <div className={styles.pillSlider} role="tablist" aria-label="Tasks or Resolved">
                 <div
                   className={styles.pillSliderTrack}
-                  style={{ transform: statusFilter === "open" ? "translateX(0)" : "translateX(100%)" }}
+                  data-pill-slider-track
+                  style={{
+                    transform:
+                      statusFilter === "open"
+                        ? "translate3d(0, 0, 0)"
+                        : "translate3d(100%, 0, 0)",
+                  }}
                   aria-hidden
                 />
                 <button
@@ -986,7 +1208,7 @@ export function Sidebar({
                             {t.status}
                           </span>
                           <span className={styles.itemPage} title={t.pageUrl}>
-                            {pagePathFromUrl(t.pageUrl)}
+                            {formatPageLabel(t.pageUrl)}
                           </span>
                           <span className={styles.itemSnippet}>
                             {(t.latestComment?.body ?? "").slice(0, 60)}

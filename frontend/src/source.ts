@@ -117,3 +117,22 @@ export async function deleteThread(
   store.deleteThread(projectId, pageUrl, threadId);
   return Promise.resolve();
 }
+
+export async function getActivityLog(projectId: string): Promise<api.ActivityLogEntry[]> {
+  await init();
+  if (useApi) {
+    return api.getActivityLog(projectId);
+  }
+  return Promise.resolve([]);
+}
+
+export async function addActivityLogEntry(
+  projectId: string,
+  entry: { threadId?: string; type?: string; message: string; meta?: Record<string, unknown> }
+): Promise<api.ActivityLogEntry | null> {
+  await init();
+  if (useApi) {
+    return api.addActivityLogEntry(projectId, entry);
+  }
+  return Promise.resolve(null);
+}
