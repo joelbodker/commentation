@@ -516,15 +516,28 @@ function OverlayInner() {
 
       {pendingPin && (
         <>
-          {createdBy.trim() && (
-            <CommentComposer
-              x={pendingPin.x}
-              y={pendingPin.y}
-              createdBy={createdBy}
-              onPost={handleComposerPost}
-              onCancel={handleComposerCancel}
-            />
-          )}
+          {(() => {
+            // Only show composer if name is persisted (saved to localStorage)
+            const trimmedName = createdBy.trim();
+            if (!trimmedName) return null;
+            try {
+              const savedName = localStorage.getItem(NAME_STORAGE_KEY_PREFIX + projectId);
+              if (savedName === trimmedName) {
+                return (
+                  <CommentComposer
+                    x={pendingPin.x}
+                    y={pendingPin.y}
+                    createdBy={createdBy}
+                    onPost={handleComposerPost}
+                    onCancel={handleComposerCancel}
+                  />
+                );
+              }
+            } catch {
+              /* ignore */
+            }
+            return null;
+          })()}
         </>
       )}
     </div>

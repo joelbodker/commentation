@@ -845,6 +845,13 @@ export function Sidebar({
                     className={styles.nameInput}
                     value={createdBy}
                     onChange={(e) => onCreatedByChange(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        onPersistName(createdBy.trim());
+                        setNameEditing(false);
+                      }
+                    }}
                     placeholder="Name or email"
                   />
                 </div>
