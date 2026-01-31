@@ -1,8 +1,0 @@
-/* JMH Typewriter – https://www.dafont.com/jmh-typewriter.font */
-/* Download and place JMHTypewriter.ttf in src/assets/fonts/ */
-@font-face {
-  font-family: "JMH Typewriter";
-  src: url("../assets/fonts/JMHTypewriter.ttf") format("truetype");
-  font-weight: normal;
-  font-style: normal;
-}

@@ -1,6 +1,6 @@
 # Commentation – Pin-based contextual comments for websites
 
-A reusable, open-source overlay that lets you add pin-based comment threads to any page. **Local-first**: comments live in `.commentation/` and sync via Git — no server or API required. Developers on different branches can add comments, commit, push, and teammates see them when they pull.
+A reusable, open-source overlay that lets you add pin-based comment threads to any page. **Website:** [commentation.dev](https://commentation.dev). **Local-first**: comments live in `.commentation/` and sync via Git — no server or API required. Developers on different branches can add comments, commit, push, and teammates see them when they pull.
 
 ## Repo layout
 

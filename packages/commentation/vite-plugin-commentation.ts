@@ -118,6 +118,16 @@ export function commentationPlugin(): Plugin {
     configResolved(config) {
       root = config.root;
     },
+    writeBundle(options, bundle) {
+      // Copy embed.js to output so static builds (e.g. GitHub Pages) can serve it
+      const outDir = options.dir ?? "dist";
+      const embedPath = join(__dirname, "dist", "embed.js");
+      if (!existsSync(embedPath)) return;
+      const destDir = join(outDir, "__commentation__");
+      const destPath = join(destDir, "embed.js");
+      mkdirSync(destDir, { recursive: true });
+      writeFileSync(destPath, readFileSync(embedPath, "utf-8"), "utf-8");
+    },
     configureServer(server) {
       server.middlewares.use(async (req, res, next) => {
         // Serve embed.js from package dist (works when installed via npm)

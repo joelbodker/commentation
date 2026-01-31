@@ -8,14 +8,15 @@ import { Overlay } from "./Overlay";
 
 const CONTAINER_ID = "fig-comments-root";
 
-function getScriptConfig(): { projectId: string } | null {
+function getScriptConfig(): { projectId: string; hintText?: string } | null {
   const script =
     document.currentScript ??
     document.querySelector(`script[data-project-id]`);
   if (!script || !(script instanceof HTMLScriptElement)) return null;
   const projectId = script.getAttribute("data-project-id")?.trim();
   if (!projectId) return null;
-  return { projectId };
+  const hintText = script.getAttribute("data-hint-text")?.trim() || undefined;
+  return { projectId, hintText };
 }
 
 class ErrorBoundary extends Component<
@@ -79,7 +80,7 @@ function main() {
   root.render(
     <React.StrictMode>
       <ErrorBoundary projectId={config.projectId}>
-        <Overlay projectId={config.projectId} />
+        <Overlay projectId={config.projectId} hintText={config.hintText} />
       </ErrorBoundary>
     </React.StrictMode>
   );

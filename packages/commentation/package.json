@@ -1,6 +1,6 @@
 {
   "name": "commentation",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Pin-based contextual comments overlay for websites. Local-first, sync via Git.",
   "type": "module",
   "main": "./vite-plugin-commentation.ts",

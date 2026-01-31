@@ -1,4 +1,5 @@
 node_modules
+landing-standalone
 dist
 .env
 .env.local
