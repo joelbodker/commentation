@@ -11,7 +11,7 @@
     "dev:landing": "cd ../commentation-landing && npm run dev",
     "build:frontend": "npm run build --prefix frontend",
     "build:backend": "npm run build --prefix backend",
-    "build:package": "npm run build --prefix frontend && mkdir -p packages/commentation/dist && cp frontend/dist/embed.js packages/commentation/dist/",
+    "build:package": "npm run build --prefix frontend && npm run build:overlay --prefix frontend && mkdir -p packages/commentation/dist && cp frontend/dist/embed.js frontend/dist/Overlay.js frontend/dist/Overlay.css packages/commentation/dist/",
     "build": "npm run build:frontend",
     "prisma:migrate:dev": "npm run prisma:migrate:dev --prefix backend",
     "prisma:generate": "npm run prisma:generate --prefix backend"

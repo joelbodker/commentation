@@ -1,6 +1,6 @@
 {
   "name": "commentation",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Pin-based contextual comments overlay for websites. Local-first, sync via Git.",
   "type": "module",
   "main": "./vite-plugin-commentation.ts",
@@ -9,6 +9,10 @@
     ".": {
       "import": "./vite-plugin-commentation.ts",
       "types": "./vite-plugin-commentation.ts"
+    },
+    "./Overlay": {
+      "import": "./dist/Overlay.js",
+      "types": "./dist/Overlay.d.ts"
     }
   },
   "files": [
