@@ -495,7 +495,15 @@ function OverlayInner() {
         createdBy={createdBy}
         onCreatedByChange={setCreatedBy}
         onPersistName={persistName}
-        showNameRequiredPrompt={!!pendingPin && !createdBy.trim()}
+        showNameRequiredPrompt={(() => {
+          if (!pendingPin) return false;
+          try {
+            const savedName = localStorage.getItem(NAME_STORAGE_KEY_PREFIX + projectId) ?? "";
+            return !(savedName && savedName === createdBy.trim());
+          } catch {
+            return true;
+          }
+        })()}
         knownNames={knownNames}
         projectId={projectId}
         selectedThread={detailThread}
