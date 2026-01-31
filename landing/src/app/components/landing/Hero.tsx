@@ -50,7 +50,7 @@ export function Hero() {
               </span>
             </h1>
             
-            <p className="text-lg text-zinc-600 dark:text-zinc-400 mb-10 leading-relaxed max-w-xl">
+            <p className="text-lg font-light text-zinc-600 dark:text-zinc-400 mb-10 leading-relaxed max-w-xl">
               The missing overlay for your preview deployments.
               <br />
               Drop comments directly on DOM elements.
