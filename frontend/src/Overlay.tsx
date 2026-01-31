@@ -223,6 +223,8 @@ function OverlayInner() {
       const target = e.target as Node;
       const root = document.getElementById("fig-comments-root");
       if (root?.contains(target)) return;
+      const overlay = document.querySelector("[data-fig-comments-overlay]");
+      if (overlay?.contains(target)) return;
       // Sidebar can end up “under” the pins layer for hit-testing; exclude its region so
       // clicking Tasks/Resolved etc. never creates a pin.
       const sidebar = document.querySelector("[data-fig-comments-sidebar]");
@@ -637,7 +639,7 @@ function OverlayInner() {
   }, [pendingPin, scrollPos]);
 
   return (
-    <div className={styles.wrapper} data-theme={theme}>
+    <div className={styles.wrapper} data-theme={theme} data-fig-comments-overlay>
       <div className={styles.pinsLayer} aria-hidden>
         <PinsLayer
           threads={openThreadsForPins}
@@ -695,8 +697,9 @@ function OverlayInner() {
         <button
           type="button"
           className={`${styles.pillboxBtn} ${styles.pillboxBtnComment} ${commentMode ? styles.pillboxBtnActive : ""}`}
-          onClick={() => {
+          onClick={(e) => {
             setHintDismissed(true);
+            setMousePos({ x: e.clientX, y: e.clientY });
             setCommentMode((c) => !c);
           }}
           title={commentMode ? "Cancel comment mode" : "Add comment (click page to place)"}
