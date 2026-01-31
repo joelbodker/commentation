@@ -62,9 +62,8 @@ export default function App() {
                       </div>
                       <div className="flex gap-6 text-xs text-zinc-500 dark:text-zinc-500">
                          <a href="https://github.com/joelbodker/commentation/blob/main/README.md" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-900 dark:hover:text-zinc-300">Docs</a>
-                         <a href="https://github.com/joelbodker/commentation" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-900 dark:hover:text-zinc-300">API</a>
-                         <a href="#" className="hover:text-zinc-900 dark:hover:text-zinc-300">Privacy</a>
-                         <a href="#" className="hover:text-zinc-900 dark:hover:text-zinc-300">Terms</a>
+                         <a href="https://github.com/joelbodker/commentation/blob/main/landing/PRIVACY.md" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-900 dark:hover:text-zinc-300">Privacy</a>
+                         <a href="https://github.com/joelbodker/commentation/blob/main/landing/TERMS.md" target="_blank" rel="noopener noreferrer" className="hover:text-zinc-900 dark:hover:text-zinc-300">Terms</a>
                       </div>
                       <div className="text-xs text-zinc-400 dark:text-zinc-600 font-mono">
                          v2.4.0
