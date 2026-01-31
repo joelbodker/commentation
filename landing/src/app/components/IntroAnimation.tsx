@@ -157,7 +157,7 @@ export function IntroAnimation({ onComplete }: IntroAnimationProps) {
             fontWeight: 200,
             color: '#e8e8e8',
             letterSpacing: '0.02em',
-            textTransform: 'uppercase',
+            textTransform: 'lowercase',
             userSelect: 'none',
             position: 'relative',
             display: 'inline-block',

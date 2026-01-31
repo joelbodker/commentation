@@ -31,7 +31,7 @@ export default function App() {
             {/* Navigation */}
             <nav className="fixed top-0 left-0 right-0 z-40 bg-white/80 dark:bg-black/80 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800">
                 <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-                  <div className="flex items-center gap-2 font-light text-lg tracking-tight font-mono uppercase">
+                  <div className="flex items-center gap-2 font-light text-lg tracking-tight font-mono lowercase">
                     <div className="w-6 h-6 bg-zinc-900 dark:bg-white rounded flex items-center justify-center text-white dark:text-black font-mono text-xs">
                       C
                     </div>
