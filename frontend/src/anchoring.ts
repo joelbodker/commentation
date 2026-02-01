@@ -97,11 +97,10 @@ export function percentToAbsoluteStyle(
     }
   }
 
+  // Fixed positioning uses viewport coordinates (no scroll offset)
   const viewportX = (xPercent / 100) * window.innerWidth;
   const viewportY = (yPercent / 100) * window.innerHeight;
-  const pinX = viewportX - window.scrollX;
-  const pinY = viewportY - window.scrollY;
-  return { left: `${pinX}px`, top: `${pinY}px` };
+  return { left: `${viewportX}px`, top: `${viewportY}px` };
 }
 
 /**

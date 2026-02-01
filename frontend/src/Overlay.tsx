@@ -6,7 +6,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { ConfigProvider, useConfig } from "./config";
 import * as source from "./source";
 import type { ThreadListItem } from "./store";
-import { scrollToPinY, buildSelector, percentToAbsoluteStyle } from "./anchoring";
+import { buildSelector, percentToAbsoluteStyle, scrollToPinY } from "./anchoring";
 import { PinsLayer } from "./PinsLayer";
 import { Sidebar } from "./Sidebar";
 import { CommentComposer } from "./CommentComposer";
@@ -81,6 +81,18 @@ function OverlayInner() {
     }
   }, [hintDismissed, hintText, projectId]);
 
+  // Ensure body is positioned for absolute children
+  useEffect(() => {
+    const body = document.body;
+    const computedPosition = window.getComputedStyle(body).position;
+    if (computedPosition === 'static') {
+      body.style.position = 'relative';
+      return () => {
+        body.style.position = '';
+      };
+    }
+  }, []);
+
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [theme, setTheme] = useState<Theme>(() => {
     if (typeof window === "undefined") return "dark";
@@ -106,7 +118,9 @@ function OverlayInner() {
     scrollY: number;
   } | null>(null);
   const [hoveredResolvedThreadId, setHoveredResolvedThreadId] = useState<string | null>(null);
+  const [repositionThreadId, setRepositionThreadId] = useState<string | null>(null);
   const [scrollPos, setScrollPos] = useState({ x: 0, y: 0 });
+  const allowScrollRestoreRef = useRef(true);
   const [createdBy, setCreatedBy] = useState(() => {
     if (typeof window === "undefined") return "";
     try {
@@ -246,16 +260,19 @@ function OverlayInner() {
       const h = Math.max(rect.height, 1);
       const offsetRatioX = (e.clientX - rect.left) / w;
       const offsetRatioY = (e.clientY - rect.top) / h;
-      const scrollX = window.scrollX;
-      const scrollY = window.scrollY;
+      
+      // Store EXACT viewport position at click time
+      const clickViewportX = e.clientX;
+      const clickViewportY = e.clientY;
+      
       setPendingPin({
         selector,
         offsetRatioX,
         offsetRatioY,
-        pageX: e.clientX + scrollX,
-        pageY: e.clientY + scrollY,
-        scrollX,
-        scrollY,
+        pageX: clickViewportX,
+        pageY: clickViewportY,
+        scrollX: window.scrollX,
+        scrollY: window.scrollY,
       });
       // If name isn't saved, open sidebar so they can enter it; composer shows after they save.
       if (!createdBy.trim()) setSidebarOpen(true);
@@ -327,26 +344,19 @@ function OverlayInner() {
   const handleComposerPost = useCallback(
     async (body: string, name: string) => {
       if (!pendingPin) return;
-      let viewportX: number;
-      let viewportY: number;
-      try {
-        const el = document.querySelector(pendingPin.selector);
-        if (el) {
-          const rect = el.getBoundingClientRect();
-          const w = Math.max(rect.width, 1);
-          const h = Math.max(rect.height, 1);
-          viewportX = rect.left + pendingPin.offsetRatioX * w;
-          viewportY = rect.top + pendingPin.offsetRatioY * h;
-        } else {
-          viewportX = pendingPin.pageX - pendingPin.scrollX;
-          viewportY = pendingPin.pageY - pendingPin.scrollY;
-        }
-      } catch {
-        viewportX = pendingPin.pageX - pendingPin.scrollX;
-        viewportY = pendingPin.pageY - pendingPin.scrollY;
-      }
-      const xPercent = (viewportX / window.innerWidth) * 100;
-      const yPercent = (viewportY / window.innerHeight) * 100;
+      
+      // Calculate absolute page coordinates (pixels from top-left of document)
+      // pendingPin.pageX/pageY are viewport coords (clientX/Y)
+      // pendingPin.scrollX/scrollY are scroll position at click time
+      const absolutePageX = pendingPin.pageX + pendingPin.scrollX;
+      const absolutePageY = pendingPin.pageY + pendingPin.scrollY;
+      
+      // Convert to percentages of document size for storage
+      const docWidth = Math.max(document.documentElement.scrollWidth, window.innerWidth);
+      const docHeight = Math.max(document.documentElement.scrollHeight, window.innerHeight);
+      const xPercent = (absolutePageX / docWidth) * 100;
+      const yPercent = (absolutePageY / docHeight) * 100;
+      
       try {
         const thread = await source.createThread(projectId, pageUrl, {
           selector: pendingPin.selector,
@@ -374,7 +384,7 @@ function OverlayInner() {
         setError(err instanceof Error ? err.message : "Failed to create task");
       }
     },
-    [projectId, pageUrl, statusFilter, pendingPin, addLog, fetchThreads]
+    [projectId, pageUrl, pendingPin, addLog, fetchThreads]
   );
 
   const handleSelectThread = useCallback(
@@ -382,9 +392,17 @@ function OverlayInner() {
       setSelectedThreadId(id);
       setSidebarOpen(true);
       const t = threads.find((x) => x.id === id);
-      if (t) scrollToPinY(t.yPercent, t.selector);
+      if (t && t.pageUrl === pageUrl) {
+        // Prevent scroll restoration from repositioning from interfering
+        allowScrollRestoreRef.current = false;
+        scrollToPinY(t.yPercent, t.selector);
+        // Re-enable after scroll completes (smooth scroll takes ~300-500ms)
+        setTimeout(() => {
+          allowScrollRestoreRef.current = true;
+        }, 1000);
+      }
     },
-    [threads]
+    [threads, pageUrl]
   );
 
   const handleRefresh = useCallback(() => {
@@ -480,6 +498,48 @@ function OverlayInner() {
     [projectId, pageUrl]
   );
 
+  const handleStartReposition = useCallback((threadId: string) => {
+    setRepositionThreadId(threadId);
+  }, []);
+
+  const handleUpdatePosition = useCallback(
+    async (
+      threadId: string,
+      params: { selector: string; xPercent: number; yPercent: number; offsetRatioX: number; offsetRatioY: number }
+    ) => {
+      const t = threads.find((x) => x.id === threadId);
+      const threadPageUrl = t?.pageUrl ?? pageUrl;
+      
+      // Optimistically update local state first
+      setThreads((prev) =>
+        prev.map((thread) =>
+          thread.id === threadId
+            ? { ...thread, ...params }
+            : thread
+        )
+      );
+      
+      try {
+        await source.updateThreadPosition(projectId, threadPageUrl, threadId, params);
+        // Refetch to ensure we're in sync with backend
+        await fetchThreads();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to reposition");
+        // Revert optimistic update on error
+        await fetchThreads();
+      }
+    },
+    [projectId, pageUrl, threads, fetchThreads]
+  );
+
+  const handleRepositionEnd = useCallback(() => {
+    setRepositionThreadId(null);
+    // Re-enable scroll restoration after a brief delay
+    setTimeout(() => {
+      allowScrollRestoreRef.current = true;
+    }, 100);
+  }, []);
+
   const knownNames = useMemo(() => {
     const names = new Set<string>();
     for (const t of threads) {
@@ -534,6 +594,14 @@ function OverlayInner() {
         : withOrder;
     return assignedFirst.map((t, i) => ({ ...t, index: i + 1 }));
   }, [threads, taskOrder, createdBy, pageUrl]);
+
+  const repositionThread = useMemo(() => {
+    if (!repositionThreadId) return null;
+    const t = threads.find((x) => x.id === repositionThreadId);
+    if (!t || t.pageUrl !== pageUrl) return null;
+    const inOpen = openThreadsForPins.find((x) => x.id === repositionThreadId);
+    return inOpen ?? { ...t, index: openThreadsForPins.length + 1 };
+  }, [repositionThreadId, threads, pageUrl, openThreadsForPins]);
   const hoveredResolvedThread = hoveredResolvedThreadId
     ? threads.find((t) => t.id === hoveredResolvedThreadId)
     : null;
@@ -645,6 +713,11 @@ function OverlayInner() {
           threads={openThreadsForPins}
           selectedThreadId={selectedThreadId}
           onSelect={handleSelectThread}
+          repositionThreadId={repositionThreadId}
+          repositionThread={repositionThread}
+          onUpdatePosition={handleUpdatePosition}
+          onRepositionEnd={handleRepositionEnd}
+          allowScrollRestoreRef={allowScrollRestoreRef}
         />
       </div>
       {/* Click marker - anchored to clicked element so it sticks regardless of scroll container */}
@@ -794,6 +867,12 @@ function OverlayInner() {
         onAddComment={handleAddComment}
         onUpdateThreadStatus={handleUpdateThreadStatus}
         onAssignThread={handleAssignThread}
+        onStartReposition={
+          detailThread && detailThread.pageUrl === pageUrl
+            ? handleStartReposition
+            : undefined
+        }
+        repositioningThreadId={repositionThreadId}
         activityLog={activityLog}
         addLog={addLog}
         onDeleteThread={handleDeleteThread}

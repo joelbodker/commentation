@@ -69,6 +69,11 @@ function main() {
     return;
   }
 
+  // Ensure body is positioned for absolute children
+  if (!document.body.style.position || document.body.style.position === "static") {
+    document.body.style.position = "relative";
+  }
+
   let rootEl = document.getElementById(CONTAINER_ID);
   if (!rootEl) {
     rootEl = document.createElement("div");

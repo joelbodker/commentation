@@ -19,7 +19,30 @@
   transition: transform 0.15s, box-shadow 0.15s;
 }
 
-.pin:hover {
+.pinAnchored {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  margin-left: -14px;
+  margin-top: -14px;
+  z-index: 2147483646;
+  border-radius: 50%;
+  border: 2px solid #0d99ff;
+  background: #fff;
+  color: #0d99ff;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  pointer-events: auto;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.pin:hover,
+.pinAnchored:hover {
   transform: scale(1.1);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
@@ -28,6 +51,29 @@
   border-color: #0a6bb5;
   color: #0a6bb5;
   animation: pulse 1.2s ease-in-out infinite;
+}
+
+.pinRepositioning {
+  cursor: grab;
+  animation: repositionPulse 1.2s ease-in-out infinite;
+  box-shadow: 0 0 0 3px rgba(13, 153, 255, 0.5);
+}
+
+.pinRepositioning:active {
+  cursor: grabbing;
+  animation: none;
+}
+
+@keyframes repositionPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 3px rgba(13, 153, 255, 0.5);
+    transform: scale(1.05);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(13, 153, 255, 0.3);
+    transform: scale(1.1);
+  }
 }
 
 @keyframes pulse {
