@@ -162,6 +162,33 @@ export async function updateThreadStatus(
   return getThread(projectId, pageUrl, threadId);
 }
 
+export async function updateThreadPosition(
+  projectId: string,
+  pageUrl: string,
+  threadId: string,
+  params: {
+    selector: string;
+    xPercent: number;
+    yPercent: number;
+    offsetRatioX?: number;
+    offsetRatioY?: number;
+  }
+): Promise<Thread | null> {
+  const base = baseUrl();
+  const url = `${base}/api/threads/${encodeURIComponent(threadId)}`;
+  await fetchJson<Thread>(url, {
+    method: "PATCH",
+    body: JSON.stringify({
+      selector: params.selector,
+      xPercent: params.xPercent,
+      yPercent: params.yPercent,
+      offsetRatioX: params.offsetRatioX,
+      offsetRatioY: params.offsetRatioY,
+    }),
+  });
+  return getThread(projectId, pageUrl, threadId);
+}
+
 export async function assignThread(
   projectId: string,
   pageUrl: string,

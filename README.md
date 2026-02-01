@@ -23,9 +23,9 @@ npm install
 npm run dev
 ```
 
-This starts the demo at [http://localhost:5173](http://localhost:5173). The Vite plugin serves the Commentation API at `/__commentation__/api` and writes comments and activity logs to `frontend/.commentation/data.json`.
+This starts the landing site at [http://localhost:5174](http://localhost:5174) (requires the `commentation-landing` repo cloned as a sibling directory: `../commentation-landing`). Turn on comment mode (💬), click the page to add a pin and first comment, then use the sidebar to view threads, reply, resolve, and assign.
 
-Turn on comment mode (💬), click the page to add a pin and first comment, then use the sidebar to view threads, reply, resolve, and assign.
+To run the tool in isolation (minimal dev page): `npm run dev:frontend` → [http://localhost:5173](http://localhost:5173). The Vite plugin serves the Commentation API at `/__commentation__/api` and writes comments and activity logs to `frontend/.commentation/data.json`.
 
 ### 3. Sync comments and activity logs with your team
 

@@ -92,6 +92,26 @@ export async function updateThreadStatus(
   return Promise.resolve(t);
 }
 
+export async function updateThreadPosition(
+  projectId: string,
+  pageUrl: string,
+  threadId: string,
+  params: {
+    selector: string;
+    xPercent: number;
+    yPercent: number;
+    offsetRatioX?: number;
+    offsetRatioY?: number;
+  }
+): Promise<Thread | null> {
+  await init();
+  if (useApi) {
+    return api.updateThreadPosition(projectId, pageUrl, threadId, params);
+  }
+  const t = store.updateThreadPosition(projectId, pageUrl, threadId, params);
+  return Promise.resolve(t);
+}
+
 export async function assignThread(
   projectId: string,
   pageUrl: string,

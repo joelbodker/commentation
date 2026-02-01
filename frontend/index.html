@@ -3,198 +3,32 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Commentation</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <title>Commentation – Tool Dev</title>
   <style>
     * { box-sizing: border-box; }
-    html {
-      overflow-y: scroll;
-    }
     body {
       margin: 0;
-      font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+      font-family: system-ui, sans-serif;
       line-height: 1.6;
       background: #fafbfc;
       color: #1a1d23;
       min-height: 100vh;
-      transition: background 0.25s ease, color 0.25s ease;
+      padding: 2rem;
     }
     body[data-theme="dark"] {
       background: #0f1114;
       color: #e6e8ec;
     }
-
-    .page {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 3rem 2rem 4rem;
-    }
-
-    .brand {
-      font-family: 'JetBrains Mono', 'Courier New', monospace;
-      font-size: clamp(2rem, 5vw, 3rem);
-      font-weight: 500;
-      letter-spacing: -0.02em;
-      margin: 0 0 0.5rem 0;
-      background: linear-gradient(135deg, #0d99ff 0%, #6366f1 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-    body[data-theme="dark"] .brand {
-      background: linear-gradient(135deg, #5eb8ff 0%, #818cf8 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .tagline {
-      font-size: 1.15rem;
-      color: #5c6370;
-      margin: 0 0 3rem 0;
-      max-width: 520px;
-    }
-    body[data-theme="dark"] .tagline {
-      color: #9ca3af;
-    }
-
-    .section-label {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      color: #0d99ff;
-      margin-bottom: 0.75rem;
-    }
-    body[data-theme="dark"] .section-label {
-      color: #5eb8ff;
-    }
-
-    .demo-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 1.25rem;
-      margin-bottom: 3rem;
-    }
-
-    .demo-card {
-      background: #fff;
-      border: 1px solid #e8eaed;
-      border-radius: 12px;
-      padding: 1.5rem;
-      transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s, background 0.25s;
-    }
-    .demo-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.06);
-    }
-    body[data-theme="dark"] .demo-card {
-      background: #1a1d23;
-      border-color: #2d3239;
-    }
-    body[data-theme="dark"] .demo-card:hover {
-      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
-      border-color: #3d434c;
-    }
-
-    .demo-card h3 {
-      font-size: 1rem;
-      font-weight: 600;
-      margin: 0 0 0.35rem 0;
-      color: inherit;
-    }
-    .demo-card p {
-      font-size: 0.9rem;
-      margin: 0;
-      color: #5c6370;
-      line-height: 1.5;
-    }
-    body[data-theme="dark"] .demo-card p {
-      color: #9ca3af;
-    }
-
-    .mockup {
-      background: linear-gradient(145deg, #eef1f5 0%, #e2e6ec 100%);
-      border-radius: 10px;
-      padding: 1.5rem;
+    .note {
+      max-width: 480px;
       margin: 2rem 0;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.8rem;
-      color: #374151;
-      border: 1px solid #dde0e5;
-    }
-    body[data-theme="dark"] .mockup {
-      background: linear-gradient(145deg, #252a32 0%, #1e2228 100%);
-      border-color: #343a44;
-      color: #9ca3af;
-    }
-    .mockup .line { margin: 0.25rem 0; }
-    .mockup .keyword { color: #0d99ff; }
-    body[data-theme="dark"] .mockup .keyword { color: #5eb8ff; }
-    .mockup .string { color: #059669; }
-    body[data-theme="dark"] .mockup .string { color: #34d399; }
-
-    .callout {
-      background: linear-gradient(135deg, #e8f4fc 0%, #f0e8fc 100%);
-      border: 1px solid #c5daf8;
-      border-radius: 12px;
-      padding: 1.5rem 1.75rem;
-      margin: 2rem 0;
-    }
-    body[data-theme="dark"] .callout {
-      background: linear-gradient(135deg, #1a2836 0%, #251a36 100%);
-      border-color: #2d3d52;
-    }
-    .callout p {
-      margin: 0;
-      font-size: 0.95rem;
-      color: #374151;
-    }
-    body[data-theme="dark"] .callout p {
-      color: #d1d5db;
-    }
-
-    .spec-list {
-      list-style: none;
-      padding: 0;
-      margin: 1.5rem 0 0 0;
-    }
-    .spec-list li {
-      padding: 0.4rem 0;
-      padding-left: 1.25rem;
-      position: relative;
-      font-size: 0.9rem;
-      color: #4b5563;
-    }
-    body[data-theme="dark"] .spec-list li {
-      color: #9ca3af;
-    }
-    .spec-list li::before {
-      content: "→";
-      position: absolute;
-      left: 0;
-      color: #0d99ff;
-      font-weight: 600;
-    }
-    body[data-theme="dark"] .spec-list li::before {
-      color: #5eb8ff;
-    }
-
-    .hero-cta {
-      font-size: 0.95rem;
-      color: #5c6370;
-      margin-top: 2rem;
-      padding: 1rem 1.25rem;
+      padding: 1rem;
       background: #f4f5f7;
       border-radius: 8px;
-      border-left: 4px solid #0d99ff;
+      font-size: 0.9rem;
     }
-    body[data-theme="dark"] .hero-cta {
+    body[data-theme="dark"] .note {
       background: #1e2228;
-      color: #9ca3af;
-      border-left-color: #5eb8ff;
     }
   </style>
 </head>
@@ -205,59 +39,13 @@
       if (document.body) document.body.setAttribute('data-theme', t === 'dark' ? 'dark' : 'light');
     } catch (_) {}
   </script>
-  <div class="page">
-    <h1 class="brand">Commentation</h1>
-    <p class="tagline">
-      Contextual feedback right where it matters. Add comments and tasks anywhere on the page — designs, docs, or dashboards — and keep your team in sync without leaving the flow.
-    </p>
-
-    <p class="section-label">Try it here</p>
-    <p class="hero-cta">
-      Use the 💬 button in the bottom-right to open the sidebar and turn on comment mode. Your cursor becomes a crosshair — click anywhere below to drop a pin and start a thread. Assign tasks, resolve them, and rearrange your list with the grip handle.
-    </p>
-
-    <p class="section-label">Demo blocks</p>
-    <div class="demo-grid">
-      <div class="demo-card">
-        <h3>Landing hero</h3>
-        <p>Click this card to leave a comment. Great for reviewing headlines, value props, or hero copy with your team.</p>
-      </div>
-      <div class="demo-card">
-        <h3>Feature spec</h3>
-        <p>Pin feedback on requirements, acceptance criteria, or specs. Resolve items when they’re done.</p>
-      </div>
-      <div class="demo-card">
-        <h3>Design review</h3>
-        <p>Use comment mode on UI mockups, wireframes, or live comps. Everyone sees the same context.</p>
-      </div>
-    </div>
-
-    <p class="section-label">Code snippet</p>
-    <div class="mockup">
-      <div class="line"><span class="keyword">function</span> <span class="string">"shipFeature"</span>() {</div>
-      <div class="line">  <span class="keyword">const</span> comment = <span class="string">"Add error handling here"</span>;</div>
-      <div class="line">  <span class="keyword">return</span> api.post(<span class="string">"/feedback"</span>, comment);</div>
-      <div class="line">}</div>
-    </div>
-
-    <div class="callout">
-      <p><strong>Tip:</strong> Open the sidebar (☰), then use the log tab to see every create, assign, resolve, and delete in real time. Switch between Tasks and Resolved, and drag the ☰ handle on a row to reorder your list.</p>
-    </div>
-
-    <p class="section-label">Quick checklist</p>
-    <ul class="spec-list">
-      <li>Place pins anywhere on the page</li>
-      <li>Assign tasks to yourself and they jump to the top</li>
-      <li>Resolve threads and move them to Resolved</li>
-      <li>Reorder tasks via the drag handle</li>
-      <li>Theme follows your choice (switch above)</li>
-    </ul>
-  </div>
+  <p>Commentation tool development. Use the 💬 button to turn on comment mode and test the overlay.</p>
+  <div class="note">Pin comments here to test.</div>
 
   <script
     type="module"
     src="/src/embed.tsx"
-    data-project-id="walkwise-web"
+    data-project-id="dev"
   ></script>
 </body>
 </html>

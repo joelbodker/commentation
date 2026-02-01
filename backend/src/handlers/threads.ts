@@ -65,13 +65,18 @@ interface UpdateThreadBody {
   resolvedBy?: string;
   assignedTo?: string | null;
   assignedBy?: string | null;
+  selector?: string;
+  xPercent?: number;
+  yPercent?: number;
+  offsetRatioX?: number;
+  offsetRatioY?: number;
 }
 
 export async function updateThread(req: Request, res: Response): Promise<void> {
   try {
     const { threadId } = req.params;
     const body = req.body as UpdateThreadBody;
-    const { status, resolvedBy, assignedTo, assignedBy } = body;
+    const { status, resolvedBy, assignedTo, assignedBy, selector, xPercent, yPercent, offsetRatioX, offsetRatioY } = body;
 
     const data: {
       status?: string;
@@ -80,6 +85,11 @@ export async function updateThread(req: Request, res: Response): Promise<void> {
       assignedTo?: string | null;
       assignedBy?: string | null;
       assignedAt?: Date | null;
+      selector?: string;
+      xPercent?: number;
+      yPercent?: number;
+      offsetRatioX?: number | null;
+      offsetRatioY?: number | null;
     } = {};
 
     if (status !== undefined) {
@@ -103,8 +113,14 @@ export async function updateThread(req: Request, res: Response): Promise<void> {
       data.assignedAt = assignedTo != null && assignedTo !== "" ? new Date() : null;
     }
 
+    if (selector !== undefined) data.selector = selector;
+    if (xPercent !== undefined) data.xPercent = xPercent;
+    if (yPercent !== undefined) data.yPercent = yPercent;
+    if (offsetRatioX !== undefined) data.offsetRatioX = offsetRatioX ?? null;
+    if (offsetRatioY !== undefined) data.offsetRatioY = offsetRatioY ?? null;
+
     if (Object.keys(data).length === 0) {
-      res.status(400).json({ error: "Body must include status and/or assignedTo" });
+      res.status(400).json({ error: "Body must include at least one field to update" });
       return;
     }
 

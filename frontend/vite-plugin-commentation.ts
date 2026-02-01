@@ -346,8 +346,13 @@ export function commentationPlugin(): Plugin {
               resolvedBy?: string;
               assignedTo?: string | null;
               assignedBy?: string | null;
+              selector?: string;
+              xPercent?: number;
+              yPercent?: number;
+              offsetRatioX?: number;
+              offsetRatioY?: number;
             };
-            const { status, resolvedBy, assignedTo, assignedBy } = body;
+            const { status, resolvedBy, assignedTo, assignedBy, selector, xPercent, yPercent, offsetRatioX, offsetRatioY } = body;
             const data = loadData(root);
             const found = findThread(data, threadId);
             if (!found) return sendJson(404, { error: "Thread not found" });
@@ -370,6 +375,11 @@ export function commentationPlugin(): Plugin {
               t.assignedBy = assignedBy ?? null;
               t.assignedAt = assignedTo != null && assignedTo !== "" ? new Date().toISOString() : null;
             }
+            if (selector !== undefined) t.selector = selector;
+            if (xPercent !== undefined) t.xPercent = xPercent;
+            if (yPercent !== undefined) t.yPercent = yPercent;
+            if (offsetRatioX !== undefined) t.offsetRatioX = offsetRatioX ?? undefined;
+            if (offsetRatioY !== undefined) t.offsetRatioY = offsetRatioY ?? undefined;
             saveData(root, data);
             return sendJson(200, t);
           }

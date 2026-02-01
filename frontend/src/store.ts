@@ -187,6 +187,28 @@ export function updateThreadStatus(
   return t;
 }
 
+export function updateThreadPosition(
+  projectId: string,
+  pageUrl: string,
+  threadId: string,
+  params: {
+    selector: string;
+    xPercent: number;
+    yPercent: number;
+    offsetRatioX?: number;
+    offsetRatioY?: number;
+  }
+): Thread | null {
+  const t = getThread(projectId, pageUrl, threadId);
+  if (!t) return null;
+  t.selector = params.selector;
+  t.xPercent = params.xPercent;
+  t.yPercent = params.yPercent;
+  t.offsetRatioX = params.offsetRatioX;
+  t.offsetRatioY = params.offsetRatioY;
+  return t;
+}
+
 export function assignThread(
   projectId: string,
   pageUrl: string,

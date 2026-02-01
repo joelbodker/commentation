@@ -1302,16 +1302,15 @@
 
 .detailActions {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 8px;
-  align-items: center;
   flex-shrink: 0;
   padding: 10px 16px;
   border-top: 1px solid #eee;
   background: #fafafa;
 }
 
-.assignRow {
+.detailActionsRow {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
@@ -1369,6 +1368,36 @@
   border-color: #999;
   background: #eee;
   color: #666;
+}
+
+.repositionBtn {
+  padding: 6px 12px;
+  border: 1px solid #0d99ff;
+  background: #e8f4fc;
+  color: #0d99ff;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.repositionBtn:hover {
+  background: #dceefc;
+}
+
+.repositionBtnActive {
+  background: #0d99ff;
+  color: #fff;
+}
+
+.repositionBtnActive:hover {
+  background: #0a6bb5;
+}
+
+.repositionModeHint {
+  font-size: 12px;
+  color: #0d99ff;
+  font-weight: 500;
+  flex-basis: 100%;
 }
 
 .resolveBtn {
@@ -1941,6 +1970,29 @@
   border-color: #505050;
   background: #2d2d2d;
   color: #808080;
+}
+
+.sidebar[data-theme="dark"] .repositionBtn {
+  border-color: #5eb8ff;
+  background: #1a3a52;
+  color: #5eb8ff;
+}
+
+.sidebar[data-theme="dark"] .repositionBtn:hover {
+  background: #243340;
+}
+
+.sidebar[data-theme="dark"] .repositionBtnActive {
+  background: #5eb8ff;
+  color: #0f1114;
+}
+
+.sidebar[data-theme="dark"] .repositionBtnActive:hover {
+  background: #4aa3e8;
+}
+
+.sidebar[data-theme="dark"] .repositionModeHint {
+  color: #5eb8ff;
 }
 
 .sidebar[data-theme="dark"] .dragHandle {

@@ -342,6 +342,8 @@ function ThreadDetail({
   onAddComment,
   onUpdateThreadStatus,
   onAssignThread,
+  onStartReposition,
+  repositioningThreadId,
   addLog,
   knownNames = [],
 }: {
@@ -355,6 +357,8 @@ function ThreadDetail({
   onAddComment: (threadId: string, pageUrl: string, body: string, createdBy: string) => void | Promise<void>;
   onUpdateThreadStatus: (threadId: string, pageUrl: string, status: "OPEN" | "RESOLVED", resolvedBy?: string) => void | Promise<void>;
   onAssignThread: (threadId: string, pageUrl: string, assignedTo: string, assignedBy: string) => void | Promise<void>;
+  onStartReposition?: (threadId: string) => void;
+  repositioningThreadId?: string | null;
   addLog?: import("./activityLog").AddLogFn;
   knownNames?: string[];
 }) {
@@ -627,7 +631,7 @@ function ThreadDetail({
       </form>
       <div className={styles.detailActions}>
         {thread.status === "OPEN" && (
-          <div className={styles.assignRow}>
+          <div className={styles.detailActionsRow}>
             <select
               className={styles.assignSelect}
               value={assignTo}
@@ -665,14 +669,31 @@ function ThreadDetail({
             </button>
           </div>
         )}
-        <button
-          type="button"
-          className={styles.resolveBtn}
-          onClick={handleToggleResolved}
-          disabled={resolving}
-        >
-          {thread.status === "OPEN" ? "Resolve" : "Reopen"}
-        </button>
+        <div className={styles.detailActionsRow}>
+          {repositioningThreadId === threadId && (
+            <span className={styles.repositionModeHint} role="status">
+              Drag the badge on the page to move it
+            </span>
+          )}
+          {onStartReposition && (
+            <button
+              type="button"
+              className={`${styles.repositionBtn} ${repositioningThreadId === threadId ? styles.repositionBtnActive : ""}`}
+              onClick={() => onStartReposition(threadId)}
+              title="Reposition badge on page"
+            >
+              Reposition
+            </button>
+          )}
+          <button
+            type="button"
+            className={styles.resolveBtn}
+            onClick={handleToggleResolved}
+            disabled={resolving}
+          >
+            {thread.status === "OPEN" ? "Resolve" : "Reopen"}
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -700,6 +721,8 @@ export function Sidebar({
   onAddComment,
   onUpdateThreadStatus,
   onAssignThread,
+  onStartReposition,
+  repositioningThreadId,
   activityLog = [],
   addLog,
   onDeleteThread,
@@ -733,6 +756,8 @@ export function Sidebar({
   onAddComment: (threadId: string, pageUrl: string, body: string, createdBy: string) => void | Promise<void>;
   onUpdateThreadStatus: (threadId: string, pageUrl: string, status: "OPEN" | "RESOLVED", resolvedBy?: string) => void | Promise<void>;
   onAssignThread: (threadId: string, pageUrl: string, assignedTo: string, assignedBy: string) => void | Promise<void>;
+  onStartReposition?: (threadId: string) => void;
+  repositioningThreadId?: string | null;
   activityLog?: ActivityLogEntry[];
   addLog?: import("./activityLog").AddLogFn;
   onDeleteThread?: (threadId: string) => void;
@@ -1109,6 +1134,8 @@ export function Sidebar({
             onAddComment={onAddComment}
             onUpdateThreadStatus={onUpdateThreadStatus}
             onAssignThread={onAssignThread}
+            onStartReposition={onStartReposition}
+            repositioningThreadId={repositioningThreadId}
             addLog={addLog}
             knownNames={knownNames}
           />
