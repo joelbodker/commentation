@@ -656,6 +656,9 @@ function OverlayInner() {
     setTheme(next);
     try {
       localStorage.setItem(THEME_STORAGE_KEY, next);
+      // Sync page immediately so host (e.g. landing) switches light/dark with Commentation
+      document.documentElement.classList.toggle("dark", next === "dark");
+      window.dispatchEvent(new CustomEvent("commentation-theme-change", { detail: { theme: next } }));
     } catch {
       /* ignore */
     }
@@ -676,6 +679,8 @@ function OverlayInner() {
 
   useEffect(() => {
     document.body.setAttribute("data-theme", theme);
+    // Sync html class for host pages (e.g. landing) that use Tailwind dark mode
+    document.documentElement.classList.toggle("dark", theme === "dark");
     return () => document.body.removeAttribute("data-theme");
   }, [theme]);
 
