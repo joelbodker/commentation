@@ -89,6 +89,12 @@
   resize: vertical;
   margin-bottom: 8px;
   font-family: inherit;
+  color: #111;
+  background: #fff;
+}
+
+.textarea::placeholder {
+  color: #888;
 }
 
 .textarea:focus {
@@ -103,6 +109,12 @@
   border-radius: 6px;
   font-size: 13px;
   margin-bottom: 12px;
+  color: #111;
+  background: #fff;
+}
+
+.input::placeholder {
+  color: #888;
 }
 
 .input:focus {
@@ -123,6 +135,7 @@
   border-radius: 6px;
   font-size: 13px;
   cursor: pointer;
+  color: #333;
 }
 
 .cancel:hover {

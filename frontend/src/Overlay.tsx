@@ -341,6 +341,20 @@ function OverlayInner() {
     setCommentMode(false);
   }, []);
 
+  // Handle Escape key to cancel comment mode
+  useEffect(() => {
+    if (!commentMode && !pendingPin) return;
+    
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        handleComposerCancel();
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [commentMode, pendingPin, handleComposerCancel]);
+
   const handleComposerPost = useCallback(
     async (body: string, name: string) => {
       if (!pendingPin) return;
