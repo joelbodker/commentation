@@ -1,6 +1,8 @@
 # Commentation – Pin-based contextual comments for websites
 
-A reusable overlay that lets you add pin-based comment threads to any page. **Local-first:** comments live in `.commentation/` and sync via Git. [commentation.dev](https://commentation.dev)
+A reusable overlay that lets you add pin-based comment threads to any page. **Local-first:** comments live in `.commentation/` and sync via Git.
+
+**Install:** [npm](https://www.npmjs.com/package/commentation) · **Site:** [commentation.dev](https://commentation.dev) · **Repo:** [GitHub](https://github.com/joelbodker/commentation)
 
 ---
 
@@ -33,6 +35,11 @@ The plugin serves the embed and API and writes comments to `.commentation/data.j
 ### Script only (no persistence)
 
 Add a script tag pointing to a CDN or self-hosted `embed.js`. Without an API, comments stay in memory and are lost on refresh. For persistence, use the Vite plugin or the Next.js route (or any backend that implements the [API contract](docs/API.md)).
+
+### Other ways to install
+
+- **npm** (recommended): `npm install commentation` — gets the published package with pre-built `dist/embed.js`, Vite plugin, and Next.js files. No build step in your app.
+- **GitHub**: `npm install github:joelbodker/commentation` — installs the monorepo root; the embed and plugin live under `node_modules/.../packages/commentation/`. Prefer the npm package for normal use.
 
 ---
 
