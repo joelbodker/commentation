@@ -10,34 +10,20 @@
       "import": "./vite-plugin-commentation.ts",
       "types": "./vite-plugin-commentation.ts"
     },
+    "./embed": { "default": "./dist/embed.js" },
     "./Overlay": {
       "import": "./dist/Overlay.js",
       "types": "./dist/Overlay.d.ts"
+    },
+    "./vite": {
+      "import": "./vite-plugin-commentation.ts",
+      "types": "./vite-plugin-commentation.ts"
     }
   },
-  "files": [
-    "dist",
-    "vite-plugin-commentation.ts"
-  ],
-  "keywords": [
-    "comments",
-    "feedback",
-    "vite",
-    "plugin",
-    "overlay",
-    "design-review",
-    "local-first",
-    "git"
-  ],
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/joelbodker/commentation"
-  },
+  "files": ["dist", "vite-plugin-commentation.ts", "nextjs", "README.md"],
+  "keywords": ["comments", "feedback", "vite", "plugin", "overlay", "design-review", "local-first", "git", "next.js"],
+  "repository": { "type": "git", "url": "https://github.com/joelbodker/commentation" },
   "license": "MIT",
-  "peerDependencies": {
-    "vite": ">=5.0.0"
-  },
-  "engines": {
-    "node": ">=18"
-  }
+  "peerDependencies": { "vite": ">=5.0.0" },
+  "engines": { "node": ">=18" }
 }
