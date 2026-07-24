@@ -6,7 +6,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { ConfigProvider, useConfig } from "./config";
 import * as source from "./source";
 import type { ThreadListItem } from "./store";
-import { buildSelector, percentToAbsoluteStyle, scrollToPinY } from "./anchoring";
+import { anchorToFixedStyle, buildSelector, resolveAnchorElement, scrollToPin } from "./anchoring";
 import { PinsLayer } from "./PinsLayer";
 import { Sidebar } from "./Sidebar";
 import { CommentComposer } from "./CommentComposer";
@@ -409,7 +409,7 @@ function OverlayInner() {
       if (t && t.pageUrl === pageUrl) {
         // Prevent scroll restoration from repositioning from interfering
         allowScrollRestoreRef.current = false;
-        scrollToPinY(t.yPercent, t.selector);
+        scrollToPin(t);
         // Re-enable after scroll completes (smooth scroll takes ~300-500ms)
         setTimeout(() => {
           allowScrollRestoreRef.current = true;
@@ -705,19 +705,15 @@ function OverlayInner() {
   // Compute viewport position for pending pin (anchored to element, works with any scroll container)
   const pendingPinViewport = useMemo(() => {
     if (!pendingPin) return null;
-    try {
-      const el = document.querySelector(pendingPin.selector);
-      if (el) {
-        const rect = el.getBoundingClientRect();
-        const w = Math.max(rect.width, 1);
-        const h = Math.max(rect.height, 1);
-        return {
-          x: rect.left + pendingPin.offsetRatioX * w,
-          y: rect.top + pendingPin.offsetRatioY * h,
-        };
-      }
-    } catch {
-      /* selector invalid */
+    const el = resolveAnchorElement(pendingPin.selector);
+    if (el) {
+      const rect = el.getBoundingClientRect();
+      const w = Math.max(rect.width, 1);
+      const h = Math.max(rect.height, 1);
+      return {
+        x: rect.left + pendingPin.offsetRatioX * w,
+        y: rect.top + pendingPin.offsetRatioY * h,
+      };
     }
     return {
       x: pendingPin.pageX - scrollPos.x,
@@ -745,13 +741,7 @@ function OverlayInner() {
       {hoveredResolvedThread && statusFilter === "resolved" && (
         <div
           className={styles.resolvedHoverDot}
-          style={percentToAbsoluteStyle(
-            hoveredResolvedThread.xPercent,
-            hoveredResolvedThread.yPercent,
-            hoveredResolvedThread.selector,
-            hoveredResolvedThread.offsetRatioX,
-            hoveredResolvedThread.offsetRatioY
-          )}
+          style={anchorToFixedStyle(hoveredResolvedThread)}
           aria-hidden
         />
       )}

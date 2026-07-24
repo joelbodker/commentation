@@ -130,7 +130,7 @@ export function commentationPlugin(): Plugin {
     },
     configureServer(server) {
       server.middlewares.use(async (req, res, next) => {
-        // Serve embed.js from package dist (works when installed via npm)
+        // Serve embed.js from package dist (works when installed via npm or in monorepo)
         const reqPath = req.url?.split("?")[0];
         if (reqPath === EMBED_PATH) {
           try {
@@ -141,7 +141,7 @@ export function commentationPlugin(): Plugin {
             res.end(code);
           } catch {
             res.statusCode = 404;
-            res.end("Commentation embed not found. Run npm run build:package first.");
+            res.end("Commentation embed not found. Run npm run build in the frontend package.");
           }
           return;
         }
@@ -218,6 +218,7 @@ export function commentationPlugin(): Plugin {
           }
 
           // GET /api/projects/:projectId/threads?pageUrl=...&status=open|resolved|all
+          // pageUrl optional: omit to get threads from ALL pages
           const listMatch = path.match(/^\/projects\/([^/]+)\/threads$/);
           if (listMatch && method === "GET") {
             const projectId = listMatch[1];
@@ -345,8 +346,13 @@ export function commentationPlugin(): Plugin {
               resolvedBy?: string;
               assignedTo?: string | null;
               assignedBy?: string | null;
+              selector?: string;
+              xPercent?: number;
+              yPercent?: number;
+              offsetRatioX?: number;
+              offsetRatioY?: number;
             };
-            const { status, resolvedBy, assignedTo, assignedBy } = body;
+            const { status, resolvedBy, assignedTo, assignedBy, selector, xPercent, yPercent, offsetRatioX, offsetRatioY } = body;
             const data = loadData(root);
             const found = findThread(data, threadId);
             if (!found) return sendJson(404, { error: "Thread not found" });
@@ -369,6 +375,11 @@ export function commentationPlugin(): Plugin {
               t.assignedBy = assignedBy ?? null;
               t.assignedAt = assignedTo != null && assignedTo !== "" ? new Date().toISOString() : null;
             }
+            if (selector !== undefined) t.selector = selector;
+            if (xPercent !== undefined) t.xPercent = xPercent;
+            if (yPercent !== undefined) t.yPercent = yPercent;
+            if (offsetRatioX !== undefined) t.offsetRatioX = offsetRatioX ?? undefined;
+            if (offsetRatioY !== undefined) t.offsetRatioY = offsetRatioY ?? undefined;
             saveData(root, data);
             return sendJson(200, t);
           }

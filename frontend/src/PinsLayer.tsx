@@ -1,11 +1,16 @@
 /**
- * Renders pins (numbered badges) at page-relative positions.
- * Pins are portaled into their anchor elements for zero-lag scroll when not being dragged.
- * When dragging (repositioning), pins are rendered in the fixed overlay for proper interaction.
+ * Renders pins (numbered badges) on the page.
+ *
+ * Idle pins are absolutely positioned children of <body>, so they scroll with the page
+ * content for free. Their coordinates come from the thread's element anchor (see
+ * anchoring.ts) rather than the page size, so a pin lands on the content it was pinned to
+ * even when the document is a different height than it was on the author's machine.
+ *
+ * While being dragged, a pin switches to fixed positioning so it tracks the cursor.
  */
-import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { buildSelector, percentToAbsoluteStyle } from "./anchoring";
+import { buildSelector, getPinContainerOrigin, resolveAnchorPagePosition } from "./anchoring";
 import type { ThreadListItem } from "./store";
 import styles from "./PinsLayer.module.css";
 
@@ -20,31 +25,10 @@ function getElementUnderPoint(clientX: number, clientY: number): Element | null 
   return el;
 }
 
-function PinPortalWrapper({
-  target,
-  children,
-}: {
-  target: HTMLElement;
-  children: React.ReactNode;
-}) {
-  const prevPosition = useRef<string>("");
-  useLayoutEffect(() => {
-    prevPosition.current = target.style.position || "";
-    if (!target.style.position || target.style.position === "static") {
-      target.style.position = "relative";
-    }
-    return () => {
-      target.style.position = prevPosition.current;
-    };
-  }, [target]);
-  return <>{children}</>;
-}
-
 function PinButton({
   t,
   isSelected,
   isRepositioning,
-  isDragging,
   isPortaled,
   style,
   onSelect,
@@ -53,7 +37,6 @@ function PinButton({
   t: ThreadWithIndex;
   isSelected: boolean;
   isRepositioning: boolean;
-  isDragging: boolean;
   isPortaled: boolean;
   style: React.CSSProperties;
   onSelect: () => void;
@@ -105,23 +88,40 @@ export function PinsLayer({
 }) {
   const [dragPos, setDragPos] = useState<{ left: number; top: number } | null>(null);
   const dragThreadRef = useRef<ThreadWithIndex | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
   const [, forceUpdate] = useState({});
 
-  // Re-render on scroll so selector-based positions update
+  // Pin positions are re-derived from live layout, so recompute whenever layout can shift:
+  // resize and reflow (ResizeObserver), late-arriving fonts/images, and scrolling — the
+  // last one matters for anchors inside nested scroll containers, which move on the page
+  // without changing window.scrollY. Coalesced into one update per frame.
   useEffect(() => {
     let rafId: number | null = null;
-    const handleScroll = () => {
-      if (rafId === null) {
-        rafId = requestAnimationFrame(() => {
-          forceUpdate({});
-          rafId = null;
-        });
-      }
+    const scheduleUpdate = () => {
+      if (rafId !== null) return;
+      rafId = requestAnimationFrame(() => {
+        rafId = null;
+        forceUpdate({});
+      });
     };
-    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    window.addEventListener("scroll", scheduleUpdate, { passive: true, capture: true });
+    window.addEventListener("resize", scheduleUpdate);
+    window.addEventListener("load", scheduleUpdate);
+
+    const observer =
+      typeof ResizeObserver !== "undefined" ? new ResizeObserver(scheduleUpdate) : null;
+    observer?.observe(document.documentElement);
+    if (observer && document.body) observer.observe(document.body);
+
+    document.fonts?.ready.then(scheduleUpdate).catch(() => {
+      /* font loading unsupported or interrupted */
+    });
+
     return () => {
-      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener("scroll", scheduleUpdate, { capture: true });
+      window.removeEventListener("resize", scheduleUpdate);
+      window.removeEventListener("load", scheduleUpdate);
+      observer?.disconnect();
       if (rafId !== null) cancelAnimationFrame(rafId);
     };
   }, []);
@@ -150,8 +150,10 @@ export function PinsLayer({
       setDragPos(null);
       dragThreadRef.current = null;
 
+      // Anchoring to our own UI would make the pin unresolvable on reload, so fall back to body.
       const el = getElementUnderPoint(e.clientX, e.clientY);
-      const target = el && el !== document.documentElement ? el : document.body;
+      const isOwnUi = el?.closest("[data-fig-comments-overlay]") != null;
+      const target = el && !isOwnUi && el !== document.documentElement ? el : document.body;
       const selector = buildSelector(target);
       const rect = target.getBoundingClientRect();
       const w = Math.max(rect.width, 1);
@@ -204,6 +206,8 @@ export function PinsLayer({
       ? [...threads, repositionThread]
       : threads;
 
+  const containerOrigin = getPinContainerOrigin();
+
   return (
     <>
       {threadsToRender.map((t) => {
@@ -225,7 +229,6 @@ export function PinsLayer({
                 t={t}
                 isSelected={isSelected}
                 isRepositioning={isRepositioning}
-                isDragging={isDragging}
                 isPortaled={false}
                 style={style}
                 onSelect={() => onSelect(t.id)}
@@ -234,16 +237,14 @@ export function PinsLayer({
             );
           }
 
-          // Convert stored percentages to absolute page coordinates
-          const docWidth = Math.max(document.documentElement.scrollWidth, window.innerWidth);
-          const docHeight = Math.max(document.documentElement.scrollHeight, window.innerHeight);
-          const pageX = (t.xPercent / 100) * docWidth;
-          const pageY = (t.yPercent / 100) * docHeight;
-          
+          // Resolve against the anchored element so the pin lands on the content it was
+          // pinned to, whatever the viewport size, then convert into the coordinate space
+          // of the containing block (body's padding box).
+          const { x: pageX, y: pageY } = resolveAnchorPagePosition(t);
           const pageStyle: React.CSSProperties = {
             position: 'absolute',
-            left: `${pageX}px`,
-            top: `${pageY}px`,
+            left: `${pageX - containerOrigin.x}px`,
+            top: `${pageY - containerOrigin.y}px`,
             pointerEvents: 'auto',
             zIndex: 2147483645,
           };
@@ -255,7 +256,6 @@ export function PinsLayer({
               t={t}
               isSelected={isSelected}
               isRepositioning={isRepositioning}
-              isDragging={false}
               isPortaled={true}
               style={pageStyle}
               onSelect={() => onSelect(t.id)}
